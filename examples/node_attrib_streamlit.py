@@ -1,4 +1,5 @@
 from collections.abc import Sequence
+from hashlib import md5
 from pathlib import Path
 
 import pandas as pd
@@ -156,7 +157,7 @@ if __name__ == "__main__":
     annotated_text(*annotated_tokens)
 
     # Load or compute node attributions
-    hash = hash(text)
+    hash = md5(text.encode()).hexdigest()[:16]
     filepath = DATA_DIR / f"{hash}.csv"
     if filepath.exists():
         df = pd.read_csv(filepath, index_col=0)
