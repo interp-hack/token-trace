@@ -5,7 +5,9 @@ description = "Transformer token flow visualizer"
 authors = [
     { name = "Seongho Son, Liza Karmannaya, Daniel Tan, David Chanin", email = "chanindav@gmail.com" },
 ]
-dependencies = []
+dependencies = [
+    "transformers>=4.39.3",
+]
 requires-python = ">=3.11"
 readme = "README.md"
 license = { text = "MIT" }
