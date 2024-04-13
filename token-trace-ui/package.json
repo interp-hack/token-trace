@@ -1,0 +1,42 @@
+{
+  "name": "token-trace-ui",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/commonjs/index.js",
+  "module": "dist/module/index.js",
+  "unpkg": "dist/cdn/iife.js",
+  "jsdelivr": "dist/cdn/iife.js",
+  "source": "src/index.ts",
+  "types": "dist/module/index.d.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "rollup": "rollup -c --bundleConfigAsCjs",
+    "buildBrowser": "node ./esbuild.js",
+    "buildNode": "tsc --project tsconfig.build.json",
+    "build": "yarn buildBrowser && yarn buildNode",
+    "typeCheck": "tsc --noEmit"
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^25.0.7",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-typescript": "^11.1.6",
+    "@types/react": "^18.2.78",
+    "react": "^18.2.0",
+    "rollup": "^4.14.2",
+    "rollup-plugin-dts": "^6.1.0",
+    "rollup-plugin-peer-deps-external": "^2.2.4",
+    "rollup-plugin-postcss": "^4.0.2",
+    "tslib": "^2.6.2",
+    "typescript": "^5.4.5"
+  },
+  "dependencies": {
+    "classnames": "^2.5.1",
+    "esbuild": "^0.20.2",
+    "esbuild-plugin-external-global": "^1.0.1",
+    "prettier": "^3.2.5",
+    "react-dom": "^18.2.0"
+  }
+}

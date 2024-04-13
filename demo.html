@@ -1,0 +1,53 @@
+<html>
+<head>
+    <title>Demo Page</title>
+    <script src="./token-trace-ui/dist/cdn/iife.js"></script>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <link rel="stylesheet" href="./token-trace-ui/dist/cdn/iife.css">
+</head>
+<body style="text-align:center">
+    <div id="target" style="margin: 0 auto"></div>
+    <script>
+        TokenTrace.render('target', TokenTrace.TokenTrace, {
+            tokens: ["I", "am", "a", "banana"],
+            layerVals: [
+                [
+                    [{ index: 123, value: 0.5 }, { index: 124, value: 0.6 }, { index: 125, value: 0.7 }, { index: 126, value: 0.8 }],
+                    [{ index: 123, value: 0.5 }, { index: 124, value: 0.6 }, { index: 125, value: 0.7 }, { index: 126, value: 0.8 }],
+                    [{ index: 123, value: 0.5 }, { index: 124, value: 0.6 }, { index: 125, value: 0.7 }, { index: 126, value: 0.8 }],
+                    [
+                        { index: 123, value: 0.5 }, { index: 124, value: 0.6 }, { index: 125, value: 0.7 }, { index: 126, value: 0.8 },
+                        { index: 123, value: 0.5 }, { index: 124, value: 0.6 }, { index: 125, value: 0.7 }, { index: 126, value: 0.8 },
+                        { index: 123, value: 0.5 }, { index: 124, value: 0.6 }, { index: 125, value: 0.7 }, { index: 126, value: 0.8 },
+                        { index: 123, value: 0.5 }, { index: 124, value: 0.6 }, { index: 125, value: 0.7 }, { index: 126, value: 0.8 },
+                        { index: 123, value: 0.5 }, { index: 124, value: 0.6 }, { index: 125, value: 0.7 }, { index: 126, value: 0.8 },
+                        { index: 123, value: 0.5 }, { index: 124, value: 0.6 }, { index: 125, value: 0.7 }, { index: 126, value: 0.8 },
+                        { index: 123, value: 0.5 }, { index: 124, value: 0.6 }, { index: 125, value: 0.7 }, { index: 126, value: 0.8 },
+                    ],
+                    
+
+                ],
+                [
+                    [{ index: 123, value: 0.5 }, { index: 124, value: 0.6 }, { index: 125, value: 0.7 }, { index: 126, value: 0.8 }],
+                    [{ index: 123, value: 0.5 }, { index: 124, value: 0.6 }, { index: 125, value: 0.7 }, { index: 126, value: 0.8 }],
+                    [{ index: 123, value: 0.5 }, { index: 124, value: 0.6 }, { index: 125, value: 0.7 }, { index: 126, value: 0.8 }],
+                    [{ index: 123, value: 0.5 }, { index: 124, value: 0.6 }, { index: 125, value: 0.7 }, { index: 126, value: 0.8 }],
+                ],
+                [
+                    [{ index: 123, value: 0.5 }, { index: 124, value: 0.6 }, { index: 125, value: 0.7 }, { index: 126, value: 0.8 }],
+                    [{ index: 123, value: 0.5 }, { index: 124, value: 0.6 }, { index: 125, value: 0.7 }, { index: 126, value: 0.8 }],
+                    [{ index: 123, value: 0.5 }, { index: 124, value: 0.6 }, { index: 125, value: 0.7 }, { index: 126, value: 0.8 }],
+                    [{ index: 123, value: 0.5 }, { index: 124, value: 0.6 }, { index: 125, value: 0.7 }, { index: 126, value: 0.8 }],
+                ],
+                [
+                    [{ index: 123, value: 0.5 }, { index: 124, value: 0.6 }, { index: 125, value: 0.7 }, { index: 126, value: 0.8 }],
+                    [{ index: 123, value: 0.5 }, { index: 124, value: 0.6 }, { index: 125, value: 0.7 }, { index: 126, value: 0.8 }],
+                    [{ index: 123, value: 0.5 }, { index: 124, value: 0.6 }, { index: 125, value: 0.7 }, { index: 126, value: 0.8 }],
+                    [{ index: 123, value: 0.5 }, { index: 124, value: 0.6 }, { index: 125, value: 0.7 }, { index: 126, value: 0.8 }],
+                ],
+            ]
+        });
+    </script>
+</body>
+</html>
