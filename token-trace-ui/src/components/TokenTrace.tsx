@@ -1,12 +1,18 @@
 import React, { useState } from "react";
 import Feature from "./Feature";
+import FeaturesPlot from "./FeaturesPlot";
 
 export interface TokenTraceProps {
   tokens: string[];
   layerVals: [number, number][][][];
+  numFeatures: number;
 }
 
-const TokenTrace = ({ tokens, layerVals }: TokenTraceProps) => {
+const TokenTrace = ({
+  tokens,
+  layerVals,
+  numFeatures = 24576,
+}: TokenTraceProps) => {
   const [hlFeature, setHlFeature] = useState<[number, number] | null>(null);
 
   const styles: any = {
@@ -42,6 +48,10 @@ const TokenTrace = ({ tokens, layerVals }: TokenTraceProps) => {
       padding: "2px",
       margin: "2px",
     },
+    tokenTraceBoxOuter: {
+      display: "flex",
+      flexDirection: "column",
+    },
   };
 
   const numLayers = layerVals[0].length;
@@ -61,21 +71,29 @@ const TokenTrace = ({ tokens, layerVals }: TokenTraceProps) => {
             <td style={styles.tokenTraceToken}>{token}</td>
             {layerVals[i].map((featureVals, j) => (
               <td key={j} style={styles.tokenTraceTd}>
-                <div style={styles.tokenTraceBox}>
-                  {featureVals.map((featureVal, k) => (
-                    <Feature
-                      key={k}
-                      index={featureVal[0]}
-                      value={featureVal[1]}
-                      onMouseEnter={() => setHlFeature([j, featureVal[0]])}
-                      onMouseLeave={() => setHlFeature(null)}
-                      highlight={
-                        hlFeature !== null &&
-                        hlFeature[0] === j &&
-                        hlFeature[1] === featureVal[0]
-                      }
+                <div style={styles.tokenTraceBoxOuter}>
+                  <div style={styles.tokenTraceBox}>
+                    {featureVals.map((featureVal, k) => (
+                      <Feature
+                        key={k}
+                        index={featureVal[0]}
+                        value={featureVal[1]}
+                        onMouseEnter={() => setHlFeature([j, featureVal[0]])}
+                        onMouseLeave={() => setHlFeature(null)}
+                        highlight={
+                          hlFeature !== null &&
+                          hlFeature[0] === j &&
+                          hlFeature[1] === featureVal[0]
+                        }
+                      />
+                    ))}
+                  </div>
+                  <div>
+                    <FeaturesPlot
+                      vals={featureVals}
+                      numFeatures={numFeatures}
                     />
-                  ))}
+                  </div>
                 </div>
               </td>
             ))}
