@@ -433,15 +433,16 @@ if __name__ == "__main__":
     text = prompt + response
     st.divider()
 
-    # Display tokenized text
-    st.write("Tokenized text:")
-    tokens = get_token_strs(DEFAULT_MODEL_NAME, text)
-    annotated_tokens = get_token_annotations(tokens)
-    annotated_text(*annotated_tokens)
+    with st.expander("Prompt breakdown"):
+        # Display tokenized text
+        st.write("Tokenized text:")
+        tokens = get_token_strs(DEFAULT_MODEL_NAME, text)
+        annotated_tokens = get_token_annotations(tokens)
+        annotated_text(*annotated_tokens)
 
-    # Display test_prompt
-    model = load_model(DEFAULT_MODEL_NAME)
-    test_prompt(prompt, response, model, print_fn=st.write)
+        # Display test_prompt
+        model = load_model(DEFAULT_MODEL_NAME)
+        test_prompt(prompt, response, model, print_fn=st.write)
 
     # Load or compute node attributions
     df = get_data(text)
