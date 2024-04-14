@@ -133,7 +133,7 @@ def plot_bar_frac_total_abs_ie_by_layer_and_node_type(df: pd.DataFrame):
 def add_neuronpedia_buttons(df: pd.DataFrame):
     # Select the top K nodes by total_abs_ie_across_token_position
     k_nodes = st.select_slider(
-        label="Number of nodes",
+        label="Select the top K nodes to open in Neuronpedia",
         # Log scale slider
         options=[1, 3, 10, 30, 100, 300, 1000, 3000, 10000],
         value=100,
@@ -250,8 +250,10 @@ if __name__ == "__main__":
     # console = Console(record=True)
     # with console.capture() as capture:
     #     test_prompt(prompt, response, model, console = console)
-    # st.markdown(console.export_html(), unsafe_allow_html=True)
-    # print(console.export_html())
+
+    # text = console.export_text()
+    # st.markdown(text)
+    # print(console.export_text())
     # console.clear()
 
     # Load or compute node attributions
