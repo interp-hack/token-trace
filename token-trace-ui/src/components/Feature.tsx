@@ -60,17 +60,19 @@ const Feature = ({
   const valDisp = expVal.length < precVal.length ? expVal : precVal;
 
   return (
-    <a
-      style={styles.feature}
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
-      href={`https://www.neuronpedia.org/gpt2-small/${layer}-res-jb/${index}`}
-    >
-      <div className="Feature-value" style={styles.featureValue}>
-        <div style={styles.featureValueInner}>{valDisp}</div>
-      </div>
-      {index}
-    </a>
+    <>
+      <a
+        style={styles.feature}
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
+        href={`https://www.neuronpedia.org/gpt2-small/${layer}-res-jb/${index}`}
+      >
+        <div className="Feature-value" style={styles.featureValue}>
+          <div style={styles.featureValueInner}>{valDisp}</div>
+        </div>
+        {index}
+      </a>
+    </>
   );
 };
 
