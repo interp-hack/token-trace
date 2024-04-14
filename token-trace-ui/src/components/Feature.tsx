@@ -4,6 +4,7 @@ export interface FeatureProps {
   index: number;
   value: number;
   highlight: boolean;
+  maxValue: number;
   onMouseEnter: () => void;
   onMouseLeave: () => void;
 }
@@ -12,10 +13,12 @@ const Feature = ({
   index,
   value,
   highlight,
+  maxValue,
   onMouseEnter,
   onMouseLeave,
 }: FeatureProps) => {
   const borderColor = highlight ? "rgba(0, 0, 0, 0.5)" : "rgba(0, 0, 0, 0.0)";
+  const portion = value / maxValue;
   const styles: any = {
     feature: {
       display: "flex",
@@ -35,11 +38,11 @@ const Feature = ({
     featureValueInner: {
       width: "25px",
       height: "25px",
-      backgroundColor: `rgba(123, 94, 17, ${value})`,
+      backgroundColor: `rgba(123, 94, 17, ${portion})`,
       display: "flex",
       justifyContent: "center",
       alignItems: "center",
-      color: value > 0.5 ? "#FFF" : "#000",
+      color: portion > 0.5 ? "#FFF" : "#000",
     },
   };
 

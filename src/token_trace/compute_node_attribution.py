@@ -16,16 +16,18 @@ DEFAULT_REPO_ID = "jbloom/GPT2-Small-SAEs"
 DEFAULT_PROMPT = "When John and Mary went to the shops, John gave the bag to"
 DEFAULT_ANSWER = " Mary"
 DEFAULT_TEXT = DEFAULT_PROMPT + DEFAULT_ANSWER
-DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+DEVICE = "cpu"
+if torch.cuda.is_available():
+    DEVICE = "cuda"
+elif torch.backends.mps.is_available():
+    DEVICE = "mps"
 
 
 @functools.lru_cache(maxsize=1)
 def load_model(model_name: str) -> HookedTransformer:
     if model_name != DEFAULT_MODEL_NAME:
         raise ValueError(f"Unknown model: {model_name}")
-    return cast(
-        HookedTransformer, HookedTransformer.from_pretrained(model_name).to(DEVICE)
-    )
+    return HookedTransformer.from_pretrained(model_name, device=DEVICE)
 
 
 def load_sae(layer: int) -> SparseAutoencoder:
@@ -37,8 +39,10 @@ def load_sae(layer: int) -> SparseAutoencoder:
     fake_pickle = SimpleNamespace()
     fake_pickle.Unpickler = BackwardsCompatibleUnpickler
     fake_pickle.__name__ = pickle.__name__
-    data = torch.load(path, map_location=torch.device("cpu"), pickle_module=fake_pickle)
-    sparse_autoencoder = SparseAutoencoder(cfg=data["cfg"])
+    data = torch.load(path, map_location=DEVICE, pickle_module=fake_pickle)
+    cfg = data["cfg"]
+    cfg.device = DEVICE
+    sparse_autoencoder = SparseAutoencoder(cfg=cfg)
     sparse_autoencoder.load_state_dict(data["state_dict"])
     return sparse_autoencoder.to(DEVICE)
 

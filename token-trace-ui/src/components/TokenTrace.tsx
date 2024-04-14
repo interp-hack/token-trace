@@ -1,11 +1,12 @@
 import React, { useState } from "react";
 import Feature from "./Feature";
 import FeaturesPlot from "./FeaturesPlot";
+import GradientRange from "./GradientRange";
 
 export interface TokenTraceProps {
   tokens: string[];
   layerVals: [number, number][][][];
-  numFeatures: number;
+  numFeatures?: number;
 }
 
 const TokenTrace = ({
@@ -14,6 +15,20 @@ const TokenTrace = ({
   numFeatures = 24576,
 }: TokenTraceProps) => {
   const [hlFeature, setHlFeature] = useState<[number, number] | null>(null);
+  const valsPerCol: { [key: number]: number[] } = {};
+  for (const tokenVals of layerVals) {
+    tokenVals.map((colVals, i) => {
+      if (!valsPerCol[i]) {
+        valsPerCol[i] = [];
+      }
+      for (const featureVal of colVals) {
+        valsPerCol[i].push(featureVal[1]);
+      }
+    });
+  }
+  const maxValsPerCol = Object.values(valsPerCol).map((vals) =>
+    Math.max(...vals)
+  );
 
   const styles: any = {
     tokenTrace: {
@@ -41,6 +56,10 @@ const TokenTrace = ({
     tokenTraceTd: {
       width: "200px",
       border: "1px solid #e0e0e0",
+      height: "inherit",
+    },
+    tokenTraceTr: {
+      height: "1px", // hacky, from https://stackoverflow.com/questions/3215553/make-a-div-fill-an-entire-table-cell
     },
     tokenTraceBox: {
       display: "flex",
@@ -51,6 +70,8 @@ const TokenTrace = ({
     tokenTraceBoxOuter: {
       display: "flex",
       flexDirection: "column",
+      height: "100%",
+      justifyContent: "space-between",
     },
   };
 
@@ -66,8 +87,16 @@ const TokenTrace = ({
             </th>
           ))}
         </tr>
+        <tr>
+          <td></td>
+          {maxValsPerCol.map((maxVal, i) => (
+            <td key={i}>
+              <GradientRange maxValue={maxVal} />
+            </td>
+          ))}
+        </tr>
         {tokens.map((token, i) => (
-          <tr key={i}>
+          <tr key={i} style={styles.tokenTraceTr}>
             <td style={styles.tokenTraceToken}>{token}</td>
             {layerVals[i].map((featureVals, j) => (
               <td key={j} style={styles.tokenTraceTd}>
@@ -78,6 +107,7 @@ const TokenTrace = ({
                         key={k}
                         index={featureVal[0]}
                         value={featureVal[1]}
+                        maxValue={maxValsPerCol[j]}
                         onMouseEnter={() => setHlFeature([j, featureVal[0]])}
                         onMouseLeave={() => setHlFeature(null)}
                         highlight={
