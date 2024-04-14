@@ -1,5 +1,3 @@
-import "./Feature.css";
-
 import classNames from "classnames";
 
 export interface FeatureProps {
@@ -17,18 +15,45 @@ const Feature = ({
   onMouseEnter,
   onMouseLeave,
 }: FeatureProps) => {
+  const borderColor = highlight ? "rgba(0, 0, 0, 0.5)" : "rgba(0, 0, 0, 0.0)";
+  const styles: any = {
+    feature: {
+      display: "flex",
+      flexDirection: "column",
+      fontSize: "7px",
+      color: "#555",
+      margin: "2px 4px",
+      textAlign: "center",
+      border: `1px solid ${borderColor}`,
+    },
+    featureValue: {
+      width: "25px",
+      height: "25px",
+      margin: "2px",
+      backgroundColor: "#EEE",
+    },
+    featureValueInner: {
+      width: "25px",
+      height: "25px",
+      backgroundColor: `rgba(123, 94, 17, ${value})`,
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      color: value > 0.5 ? "#FFF" : "#000",
+    },
+  };
+
   return (
     <div
-      className={classNames("Feature", { "Feature-highlight": highlight })}
+      style={styles.feature}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
-      <div
-        className="Feature-value"
-        style={{
-          backgroundColor: `rgba(123, 94, 17, ${value})`,
-        }}
-      />
+      <div className="Feature-value" style={styles.featureValue}>
+        <div style={styles.featureValueInner}>
+          {parseFloat(`${value}`).toFixed(2)}
+        </div>
+      </div>
       {index}
     </div>
   );

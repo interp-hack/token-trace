@@ -97,9 +97,11 @@ def dashboard_demo():
 
 
 if __name__ == "__main__":
-    st.write("""
+    st.write(
+        """
     # My first app
     Hello *world!*
-    """)
+    """
+    )
 
     dashboard_demo()

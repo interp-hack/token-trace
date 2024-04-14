@@ -22,7 +22,12 @@ requires = ["pdm-backend"]
 build-backend = "pdm.backend"
 
 [tool.pdm.dev-dependencies]
-dev = ["pytest>=8.1.1", "ruff>=0.3.3", "pyright>=1.1.354"]
+dev = [
+    "pytest>=8.1.1",
+    "ruff>=0.3.3",
+    "pyright>=1.1.354",
+    "notebook>=7.1.2",
+]
 
 [tool.pyright]
 typeCheckingMode = "strict"
