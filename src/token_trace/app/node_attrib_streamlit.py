@@ -1,5 +1,4 @@
 from collections.abc import Sequence
-from hashlib import md5
 from pathlib import Path
 
 import pandas as pd
@@ -8,11 +7,12 @@ import plotly_express as px
 import streamlit as st
 from annotated_text import annotated_text
 from plotly.subplots import make_subplots
+from token_trace.app.get_data import get_data
 from token_trace.compute_node_attribution import (
+    DEFAULT_ANSWER,
     DEFAULT_MODEL_NAME,
+    DEFAULT_PROMPT,
     DEFAULT_REPO_ID,
-    DEFAULT_TEXT,
-    compute_node_attribution,
     get_token_strs,
 )
 from token_trace.utils import open_neuronpedia
@@ -23,8 +23,13 @@ DATA_DIR = Path("data")
 def get_token_annotations(tokens: list[str]) -> Sequence[str | tuple[str, str, str]]:
     """Helper to indicate which token is being considered."""
 
-    last_token_annotation = (tokens[-1], "loss", "#ffa421")
-    return [token for token in tokens[:-1]] + [last_token_annotation]
+    # TODO: increase font size?
+    second_last_token_annotation = (tokens[-2], "loss", "#ffa421")
+    last_token_annotation = (tokens[-1], "label", "#0F52BA")
+    return [token for token in tokens[:-2]] + [
+        second_last_token_annotation,
+        last_token_annotation,
+    ]
 
 
 def process_df(df: pd.DataFrame) -> pd.DataFrame:
@@ -39,77 +44,156 @@ def process_df(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def plot_total_attribution(df: pd.DataFrame):
-    total_ie_df = df[["layer", "layer_str", "total_abs_ie_in_layer"]].drop_duplicates()
+def add_section_total_attribution(df: pd.DataFrame):
+    st.header("Summary of Feature Attribution")
+    st.write("Here, we visualize the total feature attribution by layer.")
+
+    total_ie_df = df[
+        ["layer", "node_type", "layer_str", "total_abs_ie_by_layer_and_node_type"]
+    ].drop_duplicates()
     total_ie_df["name"] = "const"
     total_ie_df = total_ie_df.sort_values(
-        ["layer", "total_abs_ie_in_layer"], ascending=[True, False]
-    )
-    fig = px.pie(
-        total_ie_df,
-        values="total_abs_ie_in_layer",
-        names="layer_str",
-        title="Total attribution by layer",
-        color="layer_str",
-    )
-    st.plotly_chart(
-        fig,
-        use_container_width=True,
+        ["layer", "total_abs_ie_by_layer_and_node_type"], ascending=[True, False]
     )
 
-
-def plot_feature_attribution_bar(df: pd.DataFrame):
     left, right = st.columns(2)
     with left:
-        df = df.sort_values(
-            ["layer", "frac_total_abs_ie_in_layer"], ascending=[True, False]
-        )
-
+        # Bar chart of total attribution by layer
         fig = px.bar(
-            df,
-            x="frac_total_abs_ie_in_layer",
-            y="layer",
-            text="feature",
-            title="Fraction of total attribution within layer",
-            color="indirect_effect",
-            color_continuous_scale=px.colors.diverging.Fall_r,
-            color_continuous_midpoint=0,
-            orientation="h",
+            total_ie_df,
+            x="layer_str",
+            y="total_abs_ie_by_layer_and_node_type",
+            color="node_type",
+            title="Total node attributions by layer",
+            # color="layer_str",
         )
-        fig.update_layout(xaxis_range=[0, 1])
-        fig.update_layout(yaxis=dict(autorange="reversed"))
-        fig.update_layout(height=800)
         st.plotly_chart(
             fig,
             use_container_width=True,
         )
 
     with right:
-        positive, negative = st.columns(2)
-        with positive:
-            # NOTE: Seems like a pain to do on-click events.
-            # Gonna settle for "open in neuronpedia" button.
-            pos_df = df[df["indirect_effect"] > 0]
-            for layer in pos_df["layer"].sort_values().unique():
-                features = pos_df[pos_df["layer"] == layer]["feature"].values
-                list_name = f"layer_{layer}_positive_features"
-                st.button(
-                    f"Positive features for layer {layer}",
-                    on_click=open_neuronpedia,
-                    args=(layer, features, list_name),
-                )
+        # Pie chart of total attribution by node type
+        df["total_abs_ie_by_node_type"] = df.groupby("node_type")["abs_ie"].transform(
+            "sum"
+        )
+        pie_df = df[["node_type", "total_abs_ie_by_node_type"]].drop_duplicates()
+        fig = px.pie(
+            pie_df,
+            values="total_abs_ie_by_node_type",
+            names="node_type",
+            title="Total attribution by node type",
+            color="node_type",
+        )
+        st.plotly_chart(
+            fig,
+            use_container_width=True,
+        )
 
-        with negative:
-            neg_df = df[df["indirect_effect"] < 0]
-            for layer in neg_df["layer"].sort_values().unique():
-                features = neg_df[neg_df["layer"] == layer]["feature"].values
-                list_name = f"layer_{layer}_negative_features"
-                st.button(
-                    f"Negative features for layer {layer}",
-                    on_click=open_neuronpedia,
-                    args=(layer, features),
-                    kwargs={"name": list_name},
-                )
+    # fig = px.pie(
+    #     total_ie_df,
+    #     values="total_abs_ie_in_layer",
+    #     names="layer_str",
+    #     title="Total attribution by layer",
+    #     color="layer_str",
+    # )
+    # st.plotly_chart(
+    #     fig,
+    #     use_container_width=True,
+    # )
+
+
+def plot_bar_frac_total_abs_ie_by_layer_and_node_type(df: pd.DataFrame):
+    # Filter by node_type = feature
+    df = df[df["node_type"] == "feature"]
+    df = df.sort_values(
+        ["layer", "frac_total_abs_ie_by_layer_and_node_type"], ascending=[True, False]
+    )
+
+    fig = px.bar(
+        df,
+        x="frac_total_abs_ie_by_layer_and_node_type",
+        y="layer",
+        text="feature",
+        title="Fraction of total attribution within layer",
+        color="indirect_effect",
+        color_continuous_scale=px.colors.diverging.Fall_r,
+        color_continuous_midpoint=0,
+        orientation="h",
+    )
+    fig.update_layout(xaxis_range=[0, 1])
+    fig.update_layout(yaxis=dict(autorange="reversed"))
+    fig.update_layout(height=800)
+    st.plotly_chart(
+        fig,
+        use_container_width=True,
+    )
+
+
+def add_neuronpedia_buttons(df: pd.DataFrame):
+    # Select the top K nodes by total_abs_ie_across_token_position
+    k_nodes = st.select_slider(
+        label="Select the top K nodes to open in Neuronpedia",
+        # Log scale slider
+        options=[1, 3, 10, 30, 100, 300, 1000, 3000, 10000],
+        value=100,
+    )
+
+    positive, negative = st.columns(2)
+
+    # Compute sum of abs_ie across token position
+    df["total_abs_ie_across_token_position"] = df.groupby(["layer", "feature"])[
+        "abs_ie"
+    ].transform("sum")
+
+    assert isinstance(k_nodes, int)
+    df = df.sort_values(
+        ["total_abs_ie_across_token_position", "layer"], ascending=[False, True]
+    )
+    df = df.head(k_nodes)
+
+    with positive:
+        # NOTE: Seems like a pain to do on-click events.
+        # Gonna settle for "open in neuronpedia" button.
+        pos_df = df[df["indirect_effect"] > 0]
+        for layer in pos_df["layer"].sort_values().unique():
+            features = pos_df[pos_df["layer"] == layer]["feature"].values
+            list_name = f"layer_{layer}_positive_features"
+            st.button(
+                f"Positive features for layer {layer}",
+                on_click=open_neuronpedia,
+                args=(layer, features, list_name),
+            )
+
+    with negative:
+        neg_df = df[df["indirect_effect"] < 0]
+        for layer in neg_df["layer"].sort_values().unique():
+            features = neg_df[neg_df["layer"] == layer]["feature"].values
+            list_name = f"layer_{layer}_negative_features"
+            st.button(
+                f"Negative features for layer {layer}",
+                on_click=open_neuronpedia,
+                args=(layer, features),
+                kwargs={"name": list_name},
+            )
+
+
+def add_section_individual_feature_attribution(df: pd.DataFrame):
+    st.header("Individual Feature Attributions")
+    st.write("Here, we visualize the feature attributions for each node.")
+
+    # Filter by node_type = feature
+    df = df[df["node_type"] == "feature"]
+
+    left, right = st.columns(2)
+    with left:
+        st.header("Fraction of Total Attribution by Layer")
+        st.write("Here, we visualize the fraction of total attribution by layer.")
+        plot_bar_frac_total_abs_ie_by_layer_and_node_type(df)
+
+    with right:
+        st.header("Open in NeuronPedia")
+        add_neuronpedia_buttons(df)
 
 
 def visualize_dataframe(df: pd.DataFrame):
@@ -147,41 +231,34 @@ if __name__ == "__main__":
 
     # Get text
     st.header("Input")
-    text = st.text_input("Enter a prompt: ", DEFAULT_TEXT)
+    prompt = st.text_input("Enter a prompt: ", DEFAULT_PROMPT)
+    response = st.text_input("Enter a response: ", DEFAULT_ANSWER)
+    # pre-pend space to response if it doesn't already start with one
+    if response and not response.startswith(" "):
+        response = " " + response
+    text = prompt + response
     st.divider()
 
     # Display tokenized text
-    st.header("Tokenized Text")
+    st.write("Tokenized text:")
     tokens = get_token_strs(DEFAULT_MODEL_NAME, text)
     annotated_tokens = get_token_annotations(tokens)
     annotated_text(*annotated_tokens)
 
+    # Display test_prompt
+    # model = load_model(DEFAULT_MODEL_NAME)
+    # console = Console(record=True)
+    # with console.capture() as capture:
+    #     test_prompt(prompt, response, model, console = console)
+
+    # text = console.export_text()
+    # st.markdown(text)
+    # print(console.export_text())
+    # console.clear()
+
     # Load or compute node attributions
-    hash = md5(text.encode()).hexdigest()[:16]
-    filepath = DATA_DIR / f"{hash}.csv"
-    if filepath.exists():
-        df = pd.read_csv(filepath, index_col=0)
-    else:
-        # Compute node attributions
-        df = compute_node_attribution(DEFAULT_MODEL_NAME, text)
-        df.to_csv(filepath)
-    df = process_df(df)
+    df = get_data(text)
 
-    # Visualize the total attribution by layer.
-    plot_total_attribution(df)
-
-    # Select the top K nodes
-    st.header("Feature Attribution")
-    k_nodes = st.select_slider(
-        label="Number of nodes",
-        # Log scale slider
-        options=[1, 3, 10, 30, 100, 300, 1000, 3000, 10000],
-        value=100,
-    )
-    assert isinstance(k_nodes, int)
-
-    # Load the data
-    df = df.head(k_nodes)
-
-    plot_feature_attribution_bar(df)
-    visualize_dataframe(df)
+    add_section_total_attribution(df)
+    add_section_individual_feature_attribution(df)
+    # visualize_dataframe(df)

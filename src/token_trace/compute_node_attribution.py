@@ -13,7 +13,9 @@ from transformer_lens import HookedTransformer
 
 DEFAULT_MODEL_NAME = "gpt2-small"
 DEFAULT_REPO_ID = "jbloom/GPT2-Small-SAEs"
-DEFAULT_TEXT = "When John and Mary went to the shops, John gave the bag to Mary"
+DEFAULT_PROMPT = "When John and Mary went to the shops, John gave the bag to"
+DEFAULT_ANSWER = " Mary"
+DEFAULT_TEXT = DEFAULT_PROMPT + DEFAULT_ANSWER
 DEVICE = "cpu"
 if torch.cuda.is_available():
     DEVICE = "cuda"
@@ -59,13 +61,11 @@ def get_token_strs(model_name: str, text: str) -> list[str]:
     return cast(list[str], model.to_str_tokens(text))
 
 
-@functools.lru_cache(maxsize=100)
 def compute_node_attribution(
     model_name: str,
     text: str,
     *,
     metric: str = "neg_loss",
-    max_k: int = 10_000,
 ) -> pd.DataFrame:
     model = load_model(model_name)
     if metric == "neg_loss":
@@ -99,7 +99,7 @@ def compute_node_attribution(
     rows = []
 
     for layer in layers:
-        print("Layer", layer)
+        print("Processing layer", layer)
         sae = load_sae(layer)
         hook_point = sae.cfg.hook_point
 
@@ -123,45 +123,60 @@ def compute_node_attribution(
             patched_loss = metric_fn(model)
             patched_loss.backward()
 
+            # Compute IE for SAE features
             grad_loss_z = z.grad
             assert grad_loss_z is not None
             assert not torch.isclose(grad_loss_z, torch.zeros_like(grad_loss_z)).all()
-            # Indirect effect relative to zero ablation = gradient * magnitude
-            # NOTE: Directly computing this is not accurate, we need integrated gradients...
-            indirect_effects = (grad_loss_z * (0 - z)).sum(dim=0).sum(dim=0)
-            for feature_idx, ie_atp in enumerate(indirect_effects):
-                rows.append(
-                    {
-                        "layer": layer,
-                        "feature": feature_idx,
-                        "indirect_effect": ie_atp.item(),
-                        "prompt_str": prompt_str,
-                        "response_str": response_str,
-                        "node_type": "feature",
-                    }
-                )
+            indirect_effects = (grad_loss_z * (0 - z)).sum(dim=0)
+            assert (
+                len(indirect_effects.shape) == 2
+            ), f"Tensor of shape {indirect_effects.shape} is not 2D."
+            n_tokens, n_features = indirect_effects.shape
+            for token_idx in range(n_tokens):
+                for feature_idx in range(n_features):
+                    ie_atp = indirect_effects[token_idx, feature_idx]
+                    rows.append(
+                        {
+                            "layer": layer,
+                            "feature": feature_idx,
+                            "token": token_idx,
+                            "value": z[0, token_idx, feature_idx].item(),
+                            "grad": grad_loss_z[0, token_idx, feature_idx].item(),
+                            "indirect_effect": ie_atp.item(),
+                            "prompt_str": prompt_str,
+                            "response_str": response_str,
+                            "node_type": "feature",
+                        }
+                    )
 
+            # Compute IE for SAE errors
             grad_loss_err = a_err.grad
             assert grad_loss_err is not None
             assert not torch.isclose(
                 grad_loss_err, torch.zeros_like(grad_loss_err)
             ).all()
-            indirect_effects = (grad_loss_err * (0 - a_err)).sum(dim=0).sum(dim=0)
-            for feature_idx, ie_atp in enumerate(indirect_effects):
-                rows.append(
-                    {
-                        "layer": layer,
-                        "feature": feature_idx,
-                        "indirect_effect": ie_atp.item(),
-                        "prompt_str": prompt_str,
-                        "response_str": response_str,
-                        "node_type": "error",
-                    }
-                )
+            indirect_effects = (grad_loss_err * (0 - a_err)).sum(dim=0)
+            assert len(indirect_effects.shape) == 2
+            n_tokens, n_features = indirect_effects.shape
+            for token_idx in range(n_tokens):
+                for feature_idx in range(n_features):
+                    ie_atp = indirect_effects[token_idx, feature_idx]
+                    rows.append(
+                        {
+                            "layer": layer,
+                            "feature": feature_idx,
+                            "token": token_idx,
+                            "value": a_err[0, token_idx, feature_idx].item(),
+                            "grad": grad_loss_err[0, token_idx, feature_idx].item(),
+                            "indirect_effect": ie_atp.item(),
+                            "prompt_str": prompt_str,
+                            "response_str": response_str,
+                            "node_type": "error",
+                        }
+                    )
 
     df = pd.DataFrame(rows)
     # Filter out zero indirect effects
     df = df[df["indirect_effect"] != 0]
-    df["absolute_ie"] = df["indirect_effect"].abs()
-    df = df.sort_values("absolute_ie", ascending=False).head(max_k)
+    print(f"{len(df)} non-zero indirect effects found.")
     return df
