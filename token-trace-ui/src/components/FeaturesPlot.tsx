@@ -6,16 +6,21 @@ interface FeaturesPlotProps {
 }
 
 const FeaturesPlot = ({ vals, numFeatures }: FeaturesPlotProps) => {
-  const xVals = [...Array(numFeatures).keys()];
-  const yVals = xVals.map(() => 0);
+  const xyVals: Map<number, number> = new Map();
+  xyVals.set(numFeatures, 0);
   for (const [i, val] of vals) {
-    yVals[i] = val;
+    if (i > 0 && !xyVals.has(i - 1)) {
+      xyVals.set(i - 1, 0);
+    }
+    xyVals.set(i, val);
+    xyVals.set(i + 1, 0);
   }
+  const entries = Array.from(xyVals.entries()).sort((a, b) => a[0] - b[0]);
 
   const data = [
     {
-      x: xVals,
-      y: yVals,
+      x: entries.map((xy) => xy[0]),
+      y: entries.map((xy) => xy[1]),
       type: "line",
     },
   ];
@@ -29,6 +34,12 @@ const FeaturesPlot = ({ vals, numFeatures }: FeaturesPlotProps) => {
       t: 0, // top margin
       b: 0, // bottom margin
       pad: 0, // padding between plot area and axis lines
+    },
+    xaxis: {
+      showgrid: false,
+    },
+    yaxis: {
+      showgrid: false,
     },
   };
 

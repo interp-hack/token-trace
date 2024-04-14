@@ -12,7 +12,7 @@ async function buildAll() {
     outfile: "iife.js",
     bundle: true,
     target: "es6",
-    minify: true,
+    minify: false,
     legalComments: "none",
     sourcemap: true,
     globalName: "TokenTrace", // Components available as e.g. `TokenTrace.Hello`
