@@ -3,11 +3,19 @@ import Plot from "react-plotly.js";
 interface FeaturesPlotProps {
   vals: [number, number][];
   numFeatures: number;
+  maxVal: number;
+  minVal: number;
 }
 
-const FeaturesPlot = ({ vals, numFeatures }: FeaturesPlotProps) => {
+const FeaturesPlot = ({
+  vals,
+  numFeatures,
+  maxVal,
+  minVal,
+}: FeaturesPlotProps) => {
   const xyVals: Map<number, number> = new Map();
   xyVals.set(numFeatures, 0);
+  xyVals.set(0, 0);
   for (const [i, val] of vals) {
     if (i > 0 && !xyVals.has(i - 1)) {
       xyVals.set(i - 1, 0);
@@ -40,6 +48,7 @@ const FeaturesPlot = ({ vals, numFeatures }: FeaturesPlotProps) => {
     },
     yaxis: {
       showgrid: false,
+      range: [1.25 * minVal, 1.25 * maxVal],
     },
   };
 

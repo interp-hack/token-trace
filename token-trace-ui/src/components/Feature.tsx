@@ -3,8 +3,10 @@ import classNames from "classnames";
 export interface FeatureProps {
   index: number;
   value: number;
+  layer: number;
   highlight: boolean;
   maxValue: number;
+  minValue: number;
   onMouseEnter: () => void;
   onMouseLeave: () => void;
 }
@@ -12,33 +14,40 @@ export interface FeatureProps {
 const Feature = ({
   index,
   value,
+  layer,
   highlight,
   maxValue,
+  minValue,
   onMouseEnter,
   onMouseLeave,
 }: FeatureProps) => {
   const borderColor = highlight ? "rgba(0, 0, 0, 0.5)" : "rgba(0, 0, 0, 0.0)";
-  const portion = value / maxValue;
+  const maxAbsVal = Math.max(Math.abs(maxValue), Math.abs(minValue));
+  const portion = Math.abs(value / maxAbsVal);
   const styles: any = {
     feature: {
       display: "flex",
       flexDirection: "column",
-      fontSize: "7px",
+      fontSize: "6px",
       color: "#555",
-      margin: "2px 4px",
+      margin: "1px 1px",
       textAlign: "center",
       border: `1px solid ${borderColor}`,
+      textDecoration: "none",
     },
     featureValue: {
-      width: "25px",
-      height: "25px",
+      width: "15px",
+      height: "15px",
       margin: "2px",
       backgroundColor: "#EEE",
     },
     featureValueInner: {
-      width: "25px",
-      height: "25px",
-      backgroundColor: `rgba(123, 94, 17, ${portion})`,
+      width: "15px",
+      height: "15px",
+      backgroundColor:
+        value > 0
+          ? `rgba(0, 0, 255, ${portion})`
+          : `rgba(255, 0, 0, ${portion})`,
       display: "flex",
       justifyContent: "center",
       alignItems: "center",
@@ -46,19 +55,22 @@ const Feature = ({
     },
   };
 
+  const expVal = value.toExponential(0);
+  const precVal = value.toPrecision(3);
+  const valDisp = expVal.length < precVal.length ? expVal : precVal;
+
   return (
-    <div
+    <a
       style={styles.feature}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
+      href={`https://www.neuronpedia.org/gpt2-small/${layer}-res-jb/${index}`}
     >
       <div className="Feature-value" style={styles.featureValue}>
-        <div style={styles.featureValueInner}>
-          {parseFloat(`${value}`).toFixed(2)}
-        </div>
+        <div style={styles.featureValueInner}>{valDisp}</div>
       </div>
       {index}
-    </div>
+    </a>
   );
 };
 

@@ -2,17 +2,27 @@ import React, { useState } from "react";
 import Feature from "./Feature";
 import FeaturesPlot from "./FeaturesPlot";
 import GradientRange from "./GradientRange";
+import { unionLayerVals } from "../unionLayerVals";
+import { filterLayerVals } from "../filterLayerVals";
 
 export interface TokenTraceProps {
   tokens: string[];
   layerVals: [number, number][][][];
   numFeatures?: number;
+  hideBoxes?: boolean;
+  hideBars?: boolean;
+  unionColToks?: boolean;
+  filterBottomPortion?: number;
 }
 
 const TokenTrace = ({
   tokens,
   layerVals,
   numFeatures = 24576,
+  hideBoxes = false,
+  hideBars = false,
+  unionColToks = false,
+  filterBottomPortion = 0,
 }: TokenTraceProps) => {
   const [hlFeature, setHlFeature] = useState<[number, number] | null>(null);
   const valsPerCol: { [key: number]: number[] } = {};
@@ -27,8 +37,15 @@ const TokenTrace = ({
     });
   }
   const maxValsPerCol = Object.values(valsPerCol).map((vals) =>
-    Math.max(...vals)
+    Math.max(Math.max(...vals), 0)
   );
+  const minValsPerCol = Object.values(valsPerCol).map((vals) =>
+    Math.min(Math.min(...vals), 0)
+  );
+  const maxAbsValsPerCol = maxValsPerCol.map((maxVal, i) => {
+    const minVal = minValsPerCol[i];
+    return Math.max(Math.abs(maxVal), Math.abs(minVal));
+  });
 
   const styles: any = {
     tokenTrace: {
@@ -76,6 +93,17 @@ const TokenTrace = ({
   };
 
   const numLayers = layerVals[0].length;
+  let processedLayers = layerVals;
+  if (filterBottomPortion > 0) {
+    const minAbsValPerCol = maxAbsValsPerCol.map(
+      (maxAbsVal) => maxAbsVal * filterBottomPortion
+    );
+    processedLayers = filterLayerVals(layerVals, minAbsValPerCol);
+  }
+  if (unionColToks) {
+    processedLayers = unionLayerVals(processedLayers);
+  }
+
   return (
     <div style={styles.tokenTrace}>
       <table style={styles.tokenTraceTable}>
@@ -91,39 +119,47 @@ const TokenTrace = ({
           <td></td>
           {maxValsPerCol.map((maxVal, i) => (
             <td key={i}>
-              <GradientRange maxValue={maxVal} />
+              <GradientRange maxValue={maxVal} minValue={minValsPerCol[i]} />
             </td>
           ))}
         </tr>
         {tokens.map((token, i) => (
           <tr key={i} style={styles.tokenTraceTr}>
             <td style={styles.tokenTraceToken}>{token}</td>
-            {layerVals[i].map((featureVals, j) => (
+            {processedLayers[i].map((featureVals, j) => (
               <td key={j} style={styles.tokenTraceTd}>
                 <div style={styles.tokenTraceBoxOuter}>
-                  <div style={styles.tokenTraceBox}>
-                    {featureVals.map((featureVal, k) => (
-                      <Feature
-                        key={k}
-                        index={featureVal[0]}
-                        value={featureVal[1]}
-                        maxValue={maxValsPerCol[j]}
-                        onMouseEnter={() => setHlFeature([j, featureVal[0]])}
-                        onMouseLeave={() => setHlFeature(null)}
-                        highlight={
-                          hlFeature !== null &&
-                          hlFeature[0] === j &&
-                          hlFeature[1] === featureVal[0]
-                        }
+                  {!hideBoxes && (
+                    <div style={styles.tokenTraceBox}>
+                      {featureVals.map((featureVal, k) => (
+                        <Feature
+                          key={k}
+                          index={featureVal[0]}
+                          value={featureVal[1]}
+                          layer={j}
+                          maxValue={maxValsPerCol[j]}
+                          minValue={minValsPerCol[j]}
+                          onMouseEnter={() => setHlFeature([j, featureVal[0]])}
+                          onMouseLeave={() => setHlFeature(null)}
+                          highlight={
+                            hlFeature !== null &&
+                            hlFeature[0] === j &&
+                            hlFeature[1] === featureVal[0]
+                          }
+                        />
+                      ))}
+                    </div>
+                  )}
+                  {!hideBars && (
+                    <div>
+                      <FeaturesPlot
+                        vals={featureVals}
+                        numFeatures={numFeatures}
+                        maxVal={maxValsPerCol[j]}
+                        minVal={minValsPerCol[j]}
                       />
-                    ))}
-                  </div>
-                  <div>
-                    <FeaturesPlot
-                      vals={featureVals}
-                      numFeatures={numFeatures}
-                    />
-                  </div>
+                    </div>
+                  )}
                 </div>
               </td>
             ))}

@@ -86,6 +86,17 @@ def render(react_element_name: str, **kwargs: Any) -> str:
 
 
 def display_token_trace(
-    tokens: list[str], layer_vals: list[list[list[tuple[int, float]]]]
+    tokens: list[str],
+    layer_vals: list[list[list[tuple[int, float]]]],
+    hide_boxes: bool = False,
+    hide_bars: bool = False,
 ) -> RenderedHTML:
-    return RenderedHTML(render("TokenTrace", tokens=tokens, layerVals=layer_vals))
+    return RenderedHTML(
+        render(
+            "TokenTrace",
+            tokens=tokens,
+            layerVals=layer_vals,
+            hideBoxes=hide_boxes,
+            hideBars=hide_bars,
+        )
+    )
