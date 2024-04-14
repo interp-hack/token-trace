@@ -30,6 +30,7 @@ const FeaturesPlot = ({
       x: entries.map((xy) => xy[0]),
       y: entries.map((xy) => xy[1]),
       type: "line",
+      mode: "lines",
     },
   ];
 
