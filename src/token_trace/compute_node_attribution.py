@@ -19,8 +19,6 @@ DEFAULT_TEXT = DEFAULT_PROMPT + DEFAULT_ANSWER
 DEVICE = "cpu"
 if torch.cuda.is_available():
     DEVICE = "cuda"
-elif torch.backends.mps.is_available():
-    DEVICE = "mps"
 
 
 @functools.lru_cache(maxsize=1)
