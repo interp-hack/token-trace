@@ -22,7 +22,9 @@ def load_jsonl(filepath: str | Path) -> list[Any]:
     return objs
 
 
-def open_neuronpedia(layer: int, features: list[int], name: str = "temporary_list"):
+def get_neuronpedia_url(
+    layer: int, features: list[int], name: str = "temporary_list"
+) -> str:
     url = "https://neuronpedia.org/quick-list/"
     name = urllib.parse.quote(name)
     url = url + "?name=" + name
@@ -31,6 +33,11 @@ def open_neuronpedia(layer: int, features: list[int], name: str = "temporary_lis
         for feature in features
     ]
     url = url + "&features=" + urllib.parse.quote(json.dumps(list_feature))
+    return url
+
+
+def open_neuronpedia(layer: int, features: list[int], name: str = "temporary_list"):
+    url = get_neuronpedia_url(layer, features, name)
     webbrowser.open(url)
 
 

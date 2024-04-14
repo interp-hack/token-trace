@@ -1,6 +1,7 @@
+from collections.abc import Callable
+
 import torch
 from rich import print as rprint
-from rich.console import Console
 from transformer_lens import HookedTransformer
 from transformer_lens.utils import remove_batch_dim
 
@@ -9,7 +10,7 @@ def test_prompt(
     prompt: str,
     answer: str,
     model: HookedTransformer,
-    console: Console | None = None,
+    print_fn: Callable[[str], None] | None = None,
     prepend_space_to_answer: bool = True,
     print_details: bool = True,
     prepend_bos: bool = True,
@@ -75,10 +76,8 @@ def test_prompt(
     Returns:
         None (just prints the results directly).
     """
-    if console is None:
+    if print_fn is None:
         print_fn = rprint
-    else:
-        print_fn = lambda *args: console.print(*args, "\n")
 
     if prepend_space_to_answer and not answer.startswith(" "):
         answer = " " + answer

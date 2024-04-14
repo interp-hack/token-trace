@@ -28,6 +28,11 @@ def process_data(df: pd.DataFrame) -> pd.DataFrame:
     )
     # Add layer as string
     df["layer_str"] = df["layer"].astype(str)
+    # Add total absolute indirect effect across token position
+    df["total_abs_ie_across_token_position"] = df.groupby(["layer", "feature"])[
+        "abs_ie"
+    ].transform("sum")
+
     return df
 
 
