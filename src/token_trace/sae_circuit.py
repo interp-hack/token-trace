@@ -20,7 +20,7 @@ ModuleName = NewType("ModuleName", str)
 SparseTensor = torch.Tensor
 
 
-def dense_to_sparse(tensor: torch.Tensor, sparse_dim: int = -1) -> torch.Tensor:
+def dense_to_sparse(tensor: torch.Tensor) -> torch.Tensor:
     """Convert a dense tensor to a sparse tensor of the same shape"""
     indices = torch.nonzero(tensor).t()
     values = tensor[*indices]
@@ -81,7 +81,7 @@ def get_circuit(
     sae_dict: dict[ModuleName, SparseAutoencoder],
     metric_fn: MetricFunction,
     node_threshold: float = 0.1,
-    edge_threshold: float = 0.01,
+    # edge_threshold: float = 0.01,
 ):
     sae_cache_dict: dict[ModuleName, ModuleActivations] = get_sae_cache_dict(
         model, sae_dict, metric_fn

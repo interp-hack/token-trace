@@ -1,3 +1,5 @@
+# ruff: noqa: F722
+
 from typing import Literal, Protocol
 
 import torch
@@ -47,7 +49,7 @@ class SAEPatcher:
     def _forward_hook_fn(
         self,
         orig: Float[torch.Tensor, "n_batch n_token d_model"],
-        hook: HookPoint,
+        hook: HookPoint,  # noqa: ARG002
     ) -> Float[torch.Tensor, "n_batch n_token d_model"]:
         """Forward hook to patch the SAE into the computational graph
 
@@ -80,7 +82,7 @@ class SAEPatcher:
     def _backward_hook_fn(
         self,
         orig: Float[torch.Tensor, "n_batch n_token d_model"],
-        hook: HookPoint,
+        hook: HookPoint,  # noqa: ARG002
     ) -> tuple[Float[torch.Tensor, "n_batch n_token d_model"]]:
         """Implement pass-through gradients
 
