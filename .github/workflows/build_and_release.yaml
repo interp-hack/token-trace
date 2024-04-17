@@ -26,10 +26,10 @@ jobs:
       - uses: actions/checkout@v4
       - name: Setup PDM
         uses: pdm-project/setup-pdm@v4
-        with:
-          cache: true
-          python-version: ${{ matrix.python-version }}
-        working-directory: /home/runner/work/token-trace
+        # with:
+        #   cache: true
+        #   python-version: ${{ matrix.python-version }}
+        # working-directory: /home/runner/work/token-trace
       - name: Cache Huggingface assets
         uses: actions/cache@v4
         with:
@@ -68,10 +68,10 @@ jobs:
           fetch-depth: 0
       - name: Setup PDM
         uses: pdm-project/setup-pdm@v4
-        with:
-          python-version: "3.11"
-          # TODO: why is this needed? 
-        working-directory: /home/runner/work/token-trace
+        # with:
+        #   python-version: "3.11"
+        #   # TODO: why is this needed? 
+        # working-directory: /home/runner/work/token-trace
       - name: Semantic Release
         id: release
         uses: python-semantic-release/python-semantic-release@v8.0.7
