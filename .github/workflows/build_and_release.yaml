@@ -1,4 +1,4 @@
-name: "ci"
+name: "build and release"
 on:
   pull_request:
     branches:
@@ -25,10 +25,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Setup PDM
-        uses: pdm-project/setup-pdm@v3
+        uses: pdm-project/setup-pdm@v4
         with:
           cache: true
           python-version: ${{ matrix.python-version }}
+        working-directory: /home/runner/work/token-trace
       - name: Cache Huggingface assets
         uses: actions/cache@v4
         with:
@@ -65,10 +66,12 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Install dependencies
+      - name: Setup PDM
         uses: pdm-project/setup-pdm@v4
         with:
           python-version: "3.11"
+          # TODO: why is this needed? 
+        working-directory: /home/runner/work/token-trace
       - name: Semantic Release
         id: release
         uses: python-semantic-release/python-semantic-release@v8.0.7
