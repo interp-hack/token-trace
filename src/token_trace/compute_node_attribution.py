@@ -15,6 +15,7 @@ from token_trace.sae_circuit import (
     get_sae_cache_dict,
 )
 
+pd.options.mode.chained_assignment = None  # default='warn'
 DEFAULT_MODEL_NAME = "gpt2-small"
 DEFAULT_REPO_ID = "jbloom/GPT2-Small-SAEs"
 DEFAULT_PROMPT = "When John and Mary went to the shops, John gave the bag to"
@@ -46,6 +47,7 @@ def load_sae(layer: int) -> SparseAutoencoder:
     cfg.device = DEVICE
     sparse_autoencoder = SparseAutoencoder(cfg=cfg)
     sparse_autoencoder.load_state_dict(data["state_dict"])
+    sparse_autoencoder.train()
     return sparse_autoencoder.to(DEVICE)
 
 

@@ -1,5 +1,6 @@
 from hashlib import md5
 from pathlib import Path
+from threading import Lock
 
 import pandas as pd
 from token_trace.compute_node_attribution import (
@@ -51,7 +52,9 @@ def load_or_compute_data(text: str, force_rerun: bool = False) -> pd.DataFrame:
 
 
 def get_data(text: str, force_rerun: bool = False) -> pd.DataFrame:
-    df = load_or_compute_data(text, force_rerun)
+    mutex = Lock()
+    with mutex:
+        df = load_or_compute_data(text, force_rerun)
     return process_data(df)
 
 

@@ -9,10 +9,11 @@ from annotated_text import annotated_text
 from plotly.subplots import make_subplots
 from token_trace.app.get_data import get_data
 from token_trace.compute_node_attribution import (
-    DEFAULT_ANSWER,
+    # DEFAULT_ANSWER,
     DEFAULT_MODEL_NAME,
-    DEFAULT_PROMPT,
+    # DEFAULT_PROMPT,
     DEFAULT_REPO_ID,
+    DEFAULT_TEXT,
     get_token_strs,
     load_model,
 )
@@ -32,18 +33,6 @@ def get_token_annotations(tokens: list[str]) -> Sequence[str | tuple[str, str, s
         second_last_token_annotation,
         last_token_annotation,
     ]
-
-
-def process_df(df: pd.DataFrame) -> pd.DataFrame:
-    df["abs_ie"] = df["indirect_effect"].abs()
-    total_abs_ie_in_layer = (
-        df.groupby("layer")["abs_ie"].sum().rename("total_abs_ie_in_layer")
-    )
-    # Merge
-    df = df.merge(total_abs_ie_in_layer, on="layer")
-    df["frac_total_abs_ie_in_layer"] = df["abs_ie"] / df["total_abs_ie_in_layer"]
-    df["layer_str"] = df["layer"].astype(str)
-    return df
 
 
 def plot_indirect_effect_vs_activation(df: pd.DataFrame):
@@ -216,6 +205,7 @@ def plot_tokenwise_feature_attribution_for_layer(
     def get_ie_df_for_layer_and_feature(df: pd.DataFrame, layer: int, feature: int):
         df = df[(df["layer"] == layer) & (df["feature"] == feature)]
         indirect_effects = df[["indirect_effect", "token", "layer", "feature"]]
+        # Create a combined "layer_and_feature" column
         indirect_effects["layer_and_feature"] = indirect_effects.apply(
             lambda row: f"({int(row['layer'])}, {int(row['feature'])})", axis=1
         )
@@ -245,7 +235,6 @@ def plot_tokenwise_feature_attribution_for_layer(
     k_nodes = 10
 
     def get_top_k_features(df: pd.DataFrame, layer: int, k_nodes: int):
-        print(df.columns)
         df = df[
             ["layer", "feature", "node_type", "total_abs_ie_across_token_position"]
         ].drop_duplicates()
@@ -259,7 +248,6 @@ def plot_tokenwise_feature_attribution_for_layer(
         return features
 
     features = get_top_k_features(df, layer, k_nodes)
-    print("Number of features: ", len(features))
 
     if with_button:
         if "my_lst" not in st.session_state:
@@ -425,12 +413,8 @@ if __name__ == "__main__":
 
     # Get text
     st.header("Input")
-    prompt = st.text_input("Enter a prompt: ", DEFAULT_PROMPT)
-    response = st.text_input("Enter a response: ", DEFAULT_ANSWER)
-    # pre-pend space to response if it doesn't already start with one
-    if response and not response.startswith(" "):
-        response = " " + response
-    text = prompt + response
+    text = st.text_input("Text", DEFAULT_TEXT)
+    prompt, response = text.rsplit(" ", 1)
     st.divider()
 
     with st.expander("Prompt breakdown"):
@@ -451,5 +435,5 @@ if __name__ == "__main__":
     add_section_total_attribution(df.copy())
     plot_indirect_effect_vs_activation(df.copy())
     add_section_individual_feature_attribution(df.copy())
-    add_section_tokenwise_feature_attribution(tokens, df.copy())
+    # add_section_tokenwise_feature_attribution(tokens, df.copy())
     add_section_tokenwise_all_layers(tokens, df.copy())
