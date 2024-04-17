@@ -17,9 +17,24 @@ pip install -e .
 
 ## Quickstart
 
+```
+from token_trace import compute_node_attribution
+
+text = "When John and Mary went to the shops, John gave the bag to Mary"
+
+df: pd.DataFrame = compute_node_attribution(
+    model_name = "gpt2",
+    text
+)
+```
+
+Each row of `df` describes one node corresponding to an SAE feature or error term. 
+
+## Front-end
+
 We use [Streamlit](https://streamlit.io/) to create a UI. Start the app as follows:
 ```
-streamlit run src/token_trace/app/node_attrib_streamlit.py
+streamlit run app/token_trace_app.py
 ```
 
 ## Methodology
