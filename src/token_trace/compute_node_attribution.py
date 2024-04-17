@@ -1,8 +1,7 @@
 import functools
 import pickle
-from functools import partial
 from types import SimpleNamespace
-from typing import Any, cast
+from typing import cast
 
 import pandas as pd
 import torch
@@ -11,14 +10,19 @@ from sae_lens import SparseAutoencoder
 from sae_lens.training.utils import BackwardsCompatibleUnpickler
 from transformer_lens import HookedTransformer
 
+from token_trace.sae_circuit import (
+    ModuleName,
+    get_sae_cache_dict,
+)
+
 DEFAULT_MODEL_NAME = "gpt2-small"
 DEFAULT_REPO_ID = "jbloom/GPT2-Small-SAEs"
 DEFAULT_PROMPT = "When John and Mary went to the shops, John gave the bag to"
 DEFAULT_ANSWER = " Mary"
 DEFAULT_TEXT = DEFAULT_PROMPT + DEFAULT_ANSWER
 DEVICE = "cpu"
-if torch.cuda.is_available():
-    DEVICE = "cuda"
+# if torch.cuda.is_available():
+#     DEVICE = "cuda"
 
 
 @functools.lru_cache(maxsize=1)
@@ -63,17 +67,14 @@ def compute_node_attribution(
     model_name: str,
     text: str,
     *,
-    metric: str = "neg_loss",
+    metric: str = "loss",
 ) -> pd.DataFrame:
     model = load_model(model_name)
-    if metric == "neg_loss":
+    if metric == "loss":
         # Last-token loss
-        metric_fn = lambda model: -loss_helper(model, text)
+        metric_fn = lambda model: loss_helper(model, text)
     else:
         raise ValueError(f"Unknown metric: {metric}")
-
-    # Pre-compute cache.
-    _, cache = model.run_with_cache(text)
 
     # Get the token strings.
     text_tokens = model.to_str_tokens(text)
@@ -83,97 +84,40 @@ def compute_node_attribution(
     prompt_str = "".join(prompt_tokens)
     response_str = response_token
 
-    # Define hook to patch features into model.
-    def patch_hook_sae_reconstruction(
-        a_orig: torch.Tensor,
-        hook: Any,  # noqa: ARG001
-        a_rec: torch.Tensor,
-    ) -> torch.Tensor:
-        assert torch.allclose(a_orig, a_rec, rtol=1e-3, atol=1e-3)
-        return a_rec
+    sae_dict = {ModuleName(str(layer)): load_sae(layer) for layer in range(12)}
+    sae_cache_dict = get_sae_cache_dict(model, sae_dict, metric_fn)
 
-    # TODO: un-hardcode this
-    layers = list(range(12))
+    # Construct dataframe.
     rows = []
+    for module_name, module_activations in sae_cache_dict.items():
+        print(f"Processing module {module_name}")
+        layer = int(module_name)
+        acts = module_activations.activations.coalesce()
+        grads = module_activations.gradients.coalesce()
+        effects = acts * grads
+        effects = effects.coalesce()
 
-    for layer in layers:
-        print("Processing layer", layer)
-        sae = load_sae(layer)
-        hook_point = sae.cfg.hook_point
+        for index, ie_atp, act, grad in zip(
+            effects.indices().t(), effects.values(), acts.values(), grads.values()
+        ):
+            example_idx, token_idx, node_idx = index
+            assert example_idx == 0
 
-        # Turn on gradients
-        sae.train()
-
-        # Compute a_rec
-        a_orig = cache[sae.cfg.hook_point]
-        a_rec, z = sae(a_orig)[:2]
-        assert z.requires_grad
-        z.retain_grad()
-        a_err = a_orig - a_rec.detach()
-        # Add the SAE error so we exactly match the original computational graph
-        a_err.requires_grad = True
-        a_err.retain_grad()
-        a_rec = a_rec + a_err
-
-        # Patch the SAE into the computational graph so it receives grad
-        hook = (hook_point, partial(patch_hook_sae_reconstruction, a_rec=a_rec))
-        with model.hooks(fwd_hooks=[hook]):
-            patched_loss = metric_fn(model)
-            patched_loss.backward()
-
-            # Compute IE for SAE features
-            grad_loss_z = z.grad
-            assert grad_loss_z is not None
-            assert not torch.isclose(grad_loss_z, torch.zeros_like(grad_loss_z)).all()
-            indirect_effects = (grad_loss_z * (0 - z)).sum(dim=0)
-            assert (
-                len(indirect_effects.shape) == 2
-            ), f"Tensor of shape {indirect_effects.shape} is not 2D."
-            n_tokens, n_features = indirect_effects.shape
-            for token_idx in range(n_tokens):
-                for feature_idx in range(n_features):
-                    ie_atp = indirect_effects[token_idx, feature_idx]
-                    rows.append(
-                        {
-                            "layer": layer,
-                            "feature": feature_idx,
-                            "token": token_idx,
-                            "token_str": text_tokens[token_idx],
-                            "value": z[0, token_idx, feature_idx].item(),
-                            "grad": grad_loss_z[0, token_idx, feature_idx].item(),
-                            "indirect_effect": ie_atp.item(),
-                            "prompt_str": prompt_str,
-                            "response_str": response_str,
-                            "node_type": "feature",
-                        }
-                    )
-
-            # Compute IE for SAE errors
-            grad_loss_err = a_err.grad
-            assert grad_loss_err is not None
-            assert not torch.isclose(
-                grad_loss_err, torch.zeros_like(grad_loss_err)
-            ).all()
-            indirect_effects = (grad_loss_err * (0 - a_err)).sum(dim=0)
-            assert len(indirect_effects.shape) == 2
-            n_tokens, n_features = indirect_effects.shape
-            for token_idx in range(n_tokens):
-                for feature_idx in range(n_features):
-                    ie_atp = indirect_effects[token_idx, feature_idx]
-                    rows.append(
-                        {
-                            "layer": layer,
-                            "feature": feature_idx,
-                            "token": token_idx,
-                            "token_str": text_tokens[token_idx],
-                            "value": a_err[0, token_idx, feature_idx].item(),
-                            "grad": grad_loss_err[0, token_idx, feature_idx].item(),
-                            "indirect_effect": ie_atp.item(),
-                            "prompt_str": prompt_str,
-                            "response_str": response_str,
-                            "node_type": "error",
-                        }
-                    )
+            rows.append(
+                {
+                    "layer": layer,
+                    "module_name": module_name,
+                    "feature": node_idx.item(),
+                    "token": token_idx.item(),
+                    "token_str": text_tokens[token_idx],
+                    "value": act.item(),
+                    "grad": grad.item(),
+                    "indirect_effect": ie_atp.item(),
+                    "prompt_str": prompt_str,
+                    "response_str": response_str,
+                    "node_type": "feature" if node_idx < 24576 else "error",
+                }
+            )
 
     df = pd.DataFrame(rows)
     # Filter out zero indirect effects

@@ -36,11 +36,11 @@ def process_data(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def load_or_compute_data(text: str) -> pd.DataFrame:
+def load_or_compute_data(text: str, force_rerun: bool = False) -> pd.DataFrame:
     # Load or compute node attributions
     hash = md5(text.encode()).hexdigest()[:16]
     filepath = DATA_DIR / f"{hash}.csv"
-    if filepath.exists():
+    if filepath.exists() and not force_rerun:
         df = pd.read_csv(filepath, index_col=0)
     else:
         # Compute node attributions
@@ -50,10 +50,10 @@ def load_or_compute_data(text: str) -> pd.DataFrame:
     return df
 
 
-def get_data(text: str) -> pd.DataFrame:
-    df = load_or_compute_data(text)
+def get_data(text: str, force_rerun: bool = False) -> pd.DataFrame:
+    df = load_or_compute_data(text, force_rerun)
     return process_data(df)
 
 
 if __name__ == "__main__":
-    get_data(DEFAULT_TEXT)
+    get_data(DEFAULT_TEXT, force_rerun=True)
