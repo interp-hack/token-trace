@@ -18,9 +18,23 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+
     steps:
       - uses: actions/checkout@v4
-      - uses: pdm-project/setup-pdm@v4
+      - name: Setup PDM
+        uses: pdm-project/setup-pdm@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Cache Huggingface assets
+        uses: actions/cache@v4
+        with:
+          key: huggingface-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('**/pyproject.toml') }}
+          path: ~/.cache/huggingface
+          restore-keys: |
+            huggingface-${{ runner.os }}-${{ matrix.python-version }}-
       - name: Install dependencies
         run: pdm install
       - name: check formatting
@@ -35,20 +49,25 @@ jobs:
         run: pdm run pytest
 
   release:
+    needs: build
     name: upload release to PyPI
     runs-on: ubuntu-latest
     permissions:
-      # This permission is needed for private repositories.
       contents: read
-      # IMPORTANT: this permission is mandatory for trusted publishing
       id-token: write
+
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && !contains(github.event.head_commit.message, 'chore(release):')
+    concurrency: release
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Install dependencies
-        uses: pdm-project/setup-pdm@v3
+        uses: pdm-project/setup-pdm@v4
+        with:
+          python-version: "3.11"
       - name: Semantic Release
         id: release
         uses: python-semantic-release/python-semantic-release@v8.0.7
