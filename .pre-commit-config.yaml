@@ -8,9 +8,10 @@ repos:
         args: [ --fix ]
       # Run the formatter.
       - id: ruff-format
-  
-  # NOTE: Pyright is kind of janky
-  # - repo: https://github.com/RobertCraigie/pyright-python
-  #   rev: v1.1.358
-  #   hooks:
-  #   - id: pyright
+  - repo: https://github.com/pdm-project/pdm
+    rev: 2.14.0 # a PDM release exposing the hook
+    hooks:
+      - id: pdm-export
+        # command arguments, e.g.:
+        args: ['-o', 'requirements.txt', '--without-hashes']
+        files: ^pdm.lock$
