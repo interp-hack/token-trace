@@ -5,6 +5,8 @@ import pytest
 import torch
 from sae_lens import SparseAutoencoder
 from sae_lens.toolkit.pretrained_saes import get_gpt2_res_jb_saes
+from transformer_lens import HookedTransformer
+
 from token_trace.sae_circuit import (
     MetricFunction,
     ModuleName,
@@ -12,7 +14,6 @@ from token_trace.sae_circuit import (
     get_sae_cache_dict,
     last_token_loss,
 )
-from transformer_lens import HookedTransformer
 
 # device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 device = torch.device("cpu")

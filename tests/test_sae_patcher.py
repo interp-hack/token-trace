@@ -5,8 +5,9 @@ import torch
 import torch.nn as nn
 from sae_lens import SparseAutoencoder
 from sae_lens.toolkit.pretrained_saes import get_gpt2_res_jb_saes
-from token_trace.sae_patcher import SAEPatcher
 from transformer_lens import HookedTransformer
+
+from token_trace.sae_patcher import SAEPatcher
 
 # device = "cuda" if torch.cuda.is_available() else "cpu"
 device = "cpu"
