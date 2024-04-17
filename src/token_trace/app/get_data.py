@@ -1,3 +1,5 @@
+import pathlib
+from collections import deque
 from hashlib import md5
 from pathlib import Path
 from threading import Lock
@@ -10,6 +12,21 @@ from token_trace.compute_node_attribution import (
 )
 
 DATA_DIR = Path("data")
+
+# Maximum number of files allowed
+MAX_FILES = 10_000
+FILE_QUEUE: deque[pathlib.Path] = deque()
+
+
+def add_file_and_delete_old(file_path: pathlib.Path):
+    # Add new file path to the queue
+    FILE_QUEUE.append(file_path)
+    # Check if the number of files exceeded the limit
+    if len(FILE_QUEUE) > MAX_FILES:
+        # Remove the oldest file
+        oldest_file = FILE_QUEUE.popleft()
+        oldest_file.unlink()
+        print(f"Deleted old file: {oldest_file}")
 
 
 def process_data(df: pd.DataFrame) -> pd.DataFrame:
@@ -47,6 +64,7 @@ def load_or_compute_data(text: str, force_rerun: bool = False) -> pd.DataFrame:
         # Compute node attributions
         df = compute_node_attribution(DEFAULT_MODEL_NAME, text)
         df.to_csv(filepath)
+        add_file_and_delete_old(filepath)
 
     return df
 
