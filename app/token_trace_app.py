@@ -18,7 +18,7 @@ from token_trace.compute_node_attribution import (
     load_model,
 )
 from token_trace.get_data import get_data
-from token_trace.test_prompt import test_prompt
+from token_trace.print_prompt_info import print_prompt_info
 from token_trace.utils import open_neuronpedia
 
 DATA_DIR = Path("data")
@@ -425,9 +425,9 @@ if __name__ == "__main__":
         annotated_tokens = get_token_annotations(tokens)
         annotated_text(*annotated_tokens)
 
-        # Display test_prompt
+        # Display prompt_info
         model = load_model(DEFAULT_MODEL_NAME)
-        test_prompt(prompt, response, model, print_fn=st.write)
+        print_prompt_info(prompt, response, model, print_fn=st.write)
 
     # Load or compute node attributions
     df = get_data(text)
