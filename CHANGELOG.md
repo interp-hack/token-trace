@@ -2,6 +2,31 @@
 
 
 
+## v0.1.3 (2024-04-18)
+
+### Chore
+
+* chore: remove droplet deploy action ([`6f916af`](https://github.com/dtch1997/token-trace/commit/6f916af1a9b6d7f70a793363246471a39be42da6))
+
+* chore: add data dir ([`47c3c8d`](https://github.com/dtch1997/token-trace/commit/47c3c8d0b50720e799b761d66c3f182833ca7895))
+
+* chore: add gh action to deploy to droplet ([`922ecd2`](https://github.com/dtch1997/token-trace/commit/922ecd2a014e9420cc63c401600cdf34ae5a2f5b))
+
+* chore: update dependencies ([`ffd935f`](https://github.com/dtch1997/token-trace/commit/ffd935f670517d9e4c56c0f82a78b094d122f655))
+
+* chore: update dependencies ([`16da4c2`](https://github.com/dtch1997/token-trace/commit/16da4c275e7f67aea49cf8358b059479ebe7b350))
+
+* chore: add reqs for streamlit app ([`f401e4d`](https://github.com/dtch1997/token-trace/commit/f401e4dfc1d8a5b540fd6d47be1d921fe1975d60))
+
+### Fix
+
+* fix: enable neuronpedia button from remote server ([`c580b78`](https://github.com/dtch1997/token-trace/commit/c580b781bd2b2e56ce2d0afcb375ffaf45abb7ed))
+
+### Refactor
+
+* refactor: app ([`bdd9406`](https://github.com/dtch1997/token-trace/commit/bdd9406fb7f9427256737eb7bdee9b50fbbed0ad))
+
+
 ## v0.1.2 (2024-04-18)
 
 ### Fix
