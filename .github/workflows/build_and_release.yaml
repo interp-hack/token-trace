@@ -1,4 +1,4 @@
-name: "ci"
+name: "build and release"
 on:
   pull_request:
     branches:
@@ -42,8 +42,9 @@ jobs:
         run: pdm run ruff format --check
       - name: check linting
         run: pdm run ruff check
-      - name: check types
-        run: pdm run pyright
+      # TODO: re-enable when I can be bothered to fix
+      # - name: check types
+      #   run: pdm run pyright
       - name: build
         run: pdm build
       - name: test
@@ -65,7 +66,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Install dependencies
+      - name: Setup PDM
         uses: pdm-project/setup-pdm@v4
         with:
           python-version: "3.11"

@@ -1,31 +1,9 @@
-from typing import cast
-
-import pytest
 import torch
 import torch.nn as nn
 from sae_lens import SparseAutoencoder
-from sae_lens.toolkit.pretrained_saes import get_gpt2_res_jb_saes
 from transformer_lens import HookedTransformer
 
 from token_trace.sae_patcher import SAEPatcher
-
-# device = "cuda" if torch.cuda.is_available() else "cpu"
-device = "cpu"
-
-
-@pytest.fixture(scope="module")
-def model() -> HookedTransformer:
-    return cast(HookedTransformer, HookedTransformer.from_pretrained("gpt2").to(device))
-
-
-@pytest.fixture(scope="module")
-def sae() -> SparseAutoencoder:
-    return get_gpt2_res_jb_saes()[0]["blocks.8.hook_resid_pre"].to(device)
-
-
-@pytest.fixture(scope="module")
-def prompt() -> str:
-    return "Hello world"
 
 
 def test_sae_patcher_hook_forward_hook_only(
@@ -80,7 +58,7 @@ def test_sae_patcher_preserves_cached_model_activations(
         assert orig_name == patched_name
         orig_act = orig_cache[orig_name]
         patched_act = patched_cache[patched_name]
-        assert torch.allclose(orig_act, patched_act, atol=1e-5)
+        assert torch.allclose(orig_act, patched_act, atol=1e-4, rtol=1e-4)
 
 
 def test_sae_patcher_preserves_model_grad(

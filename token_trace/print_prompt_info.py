@@ -6,7 +6,7 @@ from transformer_lens import HookedTransformer
 from transformer_lens.utils import remove_batch_dim
 
 
-def test_prompt(
+def print_prompt_info(
     prompt: str,
     answer: str,
     model: HookedTransformer,
