@@ -2,6 +2,17 @@
 
 
 
+## v0.1.1 (2024-04-18)
+
+### Chore
+
+* chore: fix publishing workflow ([`c49e204`](https://github.com/dtch1997/token-trace/commit/c49e204d8031109bcf471ed1f9db902f30ebf1c2))
+
+### Fix
+
+* fix: bump version ([`8352a36`](https://github.com/dtch1997/token-trace/commit/8352a36be20564daa813b8d3bfedce7016e62819))
+
+
 ## v0.1.0 (2024-04-18)
 
 ### Chore
