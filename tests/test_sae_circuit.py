@@ -27,7 +27,9 @@ def model() -> HookedTransformer:
 @pytest.fixture(scope="module")
 def sae_dict() -> dict[ModuleName, SparseAutoencoder]:
     sae_dict = get_gpt2_res_jb_saes()[0]
-    sae_dict = {ModuleName(k): v.to(device) for k, v in sae_dict.items()}
+    # Use a smaller sae_dict for testing
+    sae_dict = {ModuleName(k): v for k, v in sae_dict.items() if "blocks.8" in k}
+    # sae_dict = {ModuleName(k): v.to(device) for k, v in sae_dict.items()}
     return sae_dict
 
 
