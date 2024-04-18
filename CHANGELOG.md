@@ -2,6 +2,13 @@
 
 
 
+## v0.1.2 (2024-04-18)
+
+### Fix
+
+* fix: ci, bump version ([`cb3fc14`](https://github.com/dtch1997/token-trace/commit/cb3fc1415b3aeba0e6e319ce022f41bda660793f))
+
+
 ## v0.1.1 (2024-04-18)
 
 ### Chore
