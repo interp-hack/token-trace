@@ -1,4 +1,4 @@
-from collections.abc import Callable
+from typing import Protocol
 
 import torch
 from rich import print as rprint
@@ -6,11 +6,15 @@ from transformer_lens import HookedTransformer
 from transformer_lens.utils import remove_batch_dim
 
 
+class PrintFunction(Protocol):
+    def __call__(self, *args: str) -> None: ...
+
+
 def print_prompt_info(
     prompt: str,
     answer: str,
     model: HookedTransformer,
-    print_fn: Callable[[str], None] | None = None,
+    print_fn: PrintFunction | None = None,
     prepend_space_to_answer: bool = True,
     print_details: bool = True,
     prepend_bos: bool = True,
@@ -90,8 +94,8 @@ def print_prompt_info(
     prompt_length = len(prompt_str_tokens)
     answer_length = len(answer_str_tokens)
     if print_details:
-        print_fn("Tokenized prompt:", prompt_str_tokens)
-        print_fn("Tokenized answer:", answer_str_tokens)
+        print_fn("Tokenized prompt:", prompt_str_tokens)  # type: ignore
+        print_fn("Tokenized answer:", answer_str_tokens)  # type: ignore
     logits = remove_batch_dim(model(tokens))
     probs = logits.softmax(dim=-1)
     answer_ranks = []
