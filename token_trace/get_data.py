@@ -57,6 +57,7 @@ def process_data(df: pd.DataFrame) -> pd.DataFrame:
 
 def load_or_compute_data(text: str, force_rerun: bool = False) -> pd.DataFrame:
     # Load or compute node attributions
+    DATA_DIR.mkdir(exist_ok=True)
     hash = md5(text.encode()).hexdigest()[:16]
     filepath = DATA_DIR / f"{hash}.csv"
     if filepath.exists() and not force_rerun:
