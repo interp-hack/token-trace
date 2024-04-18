@@ -1,10 +1,8 @@
 from functools import partial
-from typing import cast
 
 import pytest
 import torch
 from sae_lens import SparseAutoencoder
-from sae_lens.toolkit.pretrained_saes import get_gpt2_res_jb_saes
 from transformer_lens import HookedTransformer
 
 from token_trace.sae_circuit import (
@@ -15,30 +13,19 @@ from token_trace.sae_circuit import (
     last_token_loss,
 )
 
-# device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-device = torch.device("cpu")
-
 
 @pytest.fixture(scope="module")
-def model() -> HookedTransformer:
-    return cast(HookedTransformer, HookedTransformer.from_pretrained("gpt2").to(device))
+def device() -> torch.device:
+    return torch.device("cpu")
 
 
-@pytest.fixture(scope="module")
-def sae_dict() -> dict[ModuleName, SparseAutoencoder]:
-    sae_dict = get_gpt2_res_jb_saes()[0]
-    # Use a smaller sae_dict for testing
-    sae_dict = {ModuleName(k): v for k, v in sae_dict.items() if "blocks.8" in k}
-    # sae_dict = {ModuleName(k): v.to(device) for k, v in sae_dict.items()}
+@pytest.fixture()
+def sae_dict(sae: SparseAutoencoder) -> dict[ModuleName, SparseAutoencoder]:
+    sae_dict = {ModuleName(sae.cfg.hook_point): sae}
     return sae_dict
 
 
-@pytest.fixture(scope="module")
-def prompt() -> str:
-    return "Hello world"
-
-
-def test_dense_to_sparse_device():
+def test_dense_to_sparse_device(device: torch.device):
     dense_tensor = torch.tensor([[3, 0, 0], [0, 4, 5], [0, 0, 0]], device=device)
     sparse_tensor = dense_to_sparse(dense_tensor)
     assert sparse_tensor.device.type == device.type

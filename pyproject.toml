@@ -9,9 +9,6 @@ dependencies = [
     "transformers>=4.39.3",
     "transformer-lens>=1.15.0",
     "sae-lens>=0.2.0",
-    "plotly>=5.20.0",
-    "st-annotated-text>=4.0.1",
-    "streamlit-plotly-events>=0.0.6",
 ]
 requires-python = ">=3.11"
 readme = "README.md"
