@@ -19,7 +19,7 @@ from token_trace.compute_node_attribution import (
 )
 from token_trace.get_data import get_data
 from token_trace.print_prompt_info import print_prompt_info
-from token_trace.utils import open_neuronpedia
+from token_trace.utils import get_neuronpedia_url
 
 DATA_DIR = Path("data")
 
@@ -158,23 +158,20 @@ def add_neuronpedia_buttons(df: pd.DataFrame):
         pos_df = df[df["indirect_effect"] > 0]
         for layer in pos_df["layer"].sort_values().unique():
             features = pos_df[pos_df["layer"] == layer]["feature"].values
-            list_name = f"layer_{layer}_positive_features"
-            st.button(
-                f"Positive features for layer {layer}",
-                on_click=open_neuronpedia,
-                args=(layer, features, list_name),
+            list_name = f"layer_{layer}_ie_positive_features"
+            st.link_button(
+                label=f"IE-positive features for layer {layer}",
+                url=get_neuronpedia_url(layer, features, list_name),
             )
 
     with negative:
         neg_df = df[df["indirect_effect"] < 0]
         for layer in neg_df["layer"].sort_values().unique():
             features = neg_df[neg_df["layer"] == layer]["feature"].values
-            list_name = f"layer_{layer}_negative_features"
-            st.button(
-                f"Negative features for layer {layer}",
-                on_click=open_neuronpedia,
-                args=(layer, features),
-                kwargs={"name": list_name},
+            list_name = f"layer_{layer}_ie_negative_features"
+            st.link_button(
+                label=f"IE-positive features for layer {layer}",
+                url=get_neuronpedia_url(layer, features, list_name),
             )
 
 
