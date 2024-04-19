@@ -1,17 +1,11 @@
-import functools
-import pickle
-from types import SimpleNamespace
 from typing import cast
 
 import pandas as pd
 import torch
-from huggingface_hub import hf_hub_download
-from sae_lens import SparseAutoencoder
-from sae_lens.training.utils import BackwardsCompatibleUnpickler
 from transformer_lens import HookedTransformer
 
+from token_trace.load_pretrained_model import load_model, load_sae_dict
 from token_trace.sae_circuit import (
-    ModuleName,
     get_sae_cache_dict,
 )
 
@@ -24,31 +18,6 @@ DEFAULT_TEXT = DEFAULT_PROMPT + DEFAULT_ANSWER
 DEVICE = "cpu"
 # if torch.cuda.is_available():
 #     DEVICE = "cuda"
-
-
-@functools.lru_cache(maxsize=1)
-def load_model(model_name: str) -> HookedTransformer:
-    if model_name != DEFAULT_MODEL_NAME:
-        raise ValueError(f"Unknown model: {model_name}")
-    return HookedTransformer.from_pretrained(model_name, device=DEVICE)
-
-
-def load_sae(layer: int) -> SparseAutoencoder:
-    filename = (
-        f"final_sparse_autoencoder_gpt2-small_blocks.{layer}.hook_resid_pre_24576.pt"
-    )
-    path = hf_hub_download(repo_id=DEFAULT_REPO_ID, filename=filename)
-    # Hacky way to get torch to unpickle an old version of SAELens model
-    fake_pickle = SimpleNamespace()
-    fake_pickle.Unpickler = BackwardsCompatibleUnpickler
-    fake_pickle.__name__ = pickle.__name__
-    data = torch.load(path, map_location=DEVICE, pickle_module=fake_pickle)
-    cfg = data["cfg"]
-    cfg.device = DEVICE
-    sparse_autoencoder = SparseAutoencoder(cfg=cfg)
-    sparse_autoencoder.load_state_dict(data["state_dict"])
-    sparse_autoencoder.train()
-    return sparse_autoencoder.to(DEVICE)
 
 
 def loss_helper(
@@ -72,6 +41,7 @@ def compute_node_attribution(
     metric: str = "loss",
 ) -> pd.DataFrame:
     model = load_model(model_name)
+    sae_dict = load_sae_dict(model_name)
     if metric == "loss":
         # Last-token loss
         metric_fn = lambda model: loss_helper(model, text)
@@ -85,8 +55,6 @@ def compute_node_attribution(
 
     prompt_str = "".join(prompt_tokens)
     response_str = response_token
-
-    sae_dict = {ModuleName(str(layer)): load_sae(layer) for layer in range(12)}
     sae_cache_dict = get_sae_cache_dict(model, sae_dict, metric_fn)
 
     # Construct dataframe.
