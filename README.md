@@ -1,4 +1,4 @@
-# token-trace
+# Token-Trace
 
 A tool and UI to construct prompt-centric views of SAE feature attributions.
 
@@ -8,14 +8,15 @@ Main functionality:
 
 This tool is a first step towards discovering information flow between the features / layers of a transformer
 
+
+# Quickstart
+
 ## Installation
 
 ```
-git clone https://github.com/interp-hack/token-trace.git
-pip install -e .
-``` 
-
-## Quickstart
+pip install token-trace
+```
+## Example Usage
 
 ```
 from token_trace import compute_node_attribution
@@ -30,7 +31,7 @@ df: pd.DataFrame = compute_node_attribution(
 
 Each row of `df` describes one node corresponding to an SAE feature or error term. 
 
-## Front-end
+## Visualizing SAE attribution statistics in frontend. 
 
 We use [Streamlit](https://streamlit.io/) to create a UI. Start the app as follows:
 ```
