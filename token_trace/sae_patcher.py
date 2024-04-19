@@ -76,7 +76,7 @@ class SAEPatcher:
         return a_rec
 
     @property
-    def sae_nodes(self) -> Float[torch.Tensor, "n_batch n_token (d_sae + d_model)"]:
+    def sae_nodes(self) -> Float[torch.Tensor, "n_batch n_token (d_sae+d_model)"]:
         return torch.cat([self.sae_feature_acts, self.sae_errors], dim=-1)
 
     def _backward_hook_fn(

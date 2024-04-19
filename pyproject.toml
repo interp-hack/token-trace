@@ -9,6 +9,7 @@ dependencies = [
     "transformers>=4.39.3",
     "transformer-lens>=1.15.0",
     "sae-lens>=0.2.0",
+    "pandera>=0.18.3",
 ]
 requires-python = ">=3.11"
 readme = "README.md"
@@ -53,3 +54,6 @@ exclude = ["dist", "docs"]
 [tool.ruff.lint]
 ignore = ["E203", "E501", "E731"]
 extend-select = ["UP", "TID", "I", "F", "E", "ARG"]
+
+[tool.pdm.scripts]
+run_app = "streamlit run app/token_trace_app.py"

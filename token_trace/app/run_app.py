@@ -1,11 +1,13 @@
 from collections.abc import Sequence
 from pathlib import Path
+from typing import cast
 
 import pandas as pd
 import plotly.graph_objects as go
 import plotly_express as px
 import streamlit as st
 from annotated_text import annotated_text
+from pandera.typing import Series
 from plotly.subplots import make_subplots
 
 from token_trace.app.get_data import get_data
@@ -232,9 +234,7 @@ def plot_tokenwise_feature_attribution_for_layer(
 
     k_nodes = 10
 
-    def get_top_k_features(
-        df: pd.DataFrame, layer: int, k_nodes: int
-    ) -> pd.Series[int]:
+    def get_top_k_features(df: pd.DataFrame, layer: int, k_nodes: int) -> Series[int]:
         df = df[
             ["layer", "feature", "node_type", "total_abs_ie_across_token_position"]
         ].drop_duplicates()
@@ -245,7 +245,8 @@ def plot_tokenwise_feature_attribution_for_layer(
         )
         top_k = df.head(k_nodes)
         features = top_k[top_k["layer"] == layer]["feature"]
-        return features
+
+        return cast(Series[int], features)
 
     features = get_top_k_features(df, layer, k_nodes)
 
