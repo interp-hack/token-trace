@@ -5,9 +5,7 @@ import torch
 from transformer_lens import HookedTransformer
 
 from token_trace.load_pretrained_model import load_model, load_sae_dict
-from token_trace.sae_circuit import (
-    get_sae_cache_dict,
-)
+from token_trace.sae_activation_cache import get_sae_activation_cache
 
 pd.options.mode.chained_assignment = None  # default='warn'
 DEFAULT_MODEL_NAME = "gpt2-small"
@@ -55,7 +53,7 @@ def compute_node_attribution(
 
     prompt_str = "".join(prompt_tokens)
     response_str = response_token
-    sae_cache_dict = get_sae_cache_dict(model, sae_dict, metric_fn)
+    sae_cache_dict = get_sae_activation_cache(model, sae_dict, metric_fn)
 
     # Construct dataframe.
     rows = []

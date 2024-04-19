@@ -8,7 +8,7 @@ from sae_lens import SparseAutoencoder
 from sae_lens.training.utils import BackwardsCompatibleUnpickler
 from transformer_lens import HookedTransformer
 
-from token_trace.sae_circuit import (
+from token_trace.types import (
     ModuleName,
 )
 
