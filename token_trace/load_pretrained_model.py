@@ -54,3 +54,9 @@ def load_sae_dict(model_name: str) -> dict[ModuleName, SparseAutoencoder]:
     # TODO: un-hardcode n_layers
     n_layers = 12
     return {ModuleName(str(layer)): load_sae(layer) for layer in range(n_layers)}
+
+
+if __name__ == "__main__":
+    # Download the artefacts from huggingface
+    load_model()
+    load_sae_dict()
