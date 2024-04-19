@@ -12,7 +12,8 @@ from token_trace.compute_node_attribution import (
     compute_node_attribution,
 )
 
-DATA_DIR = Path("data")
+ROOT_DIR = Path(__file__).parent.parent.parent
+DATA_DIR = ROOT_DIR / "app" / "data"
 
 # Maximum number of files allowed
 MAX_FILES = 10_000

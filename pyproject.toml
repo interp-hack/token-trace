@@ -9,11 +9,18 @@ dependencies = [
     "transformers>=4.39.3",
     "transformer-lens>=1.15.0",
     "sae-lens>=0.2.0",
+    "pandera>=0.18.3",
 ]
 requires-python = ">=3.11"
 readme = "README.md"
 license = { text = "MIT" }
 
+[project.optional-dependencies]
+client = [
+    "streamlit>=1.33.0",
+    "st-annotated-text>=4.0.1",
+    "pytest>=8.1.1",
+]
 [build-system]
 requires = ["pdm-backend"]
 build-backend = "pdm.backend"
@@ -47,3 +54,6 @@ exclude = ["dist", "docs"]
 [tool.ruff.lint]
 ignore = ["E203", "E501", "E731"]
 extend-select = ["UP", "TID", "I", "F", "E", "ARG"]
+
+[tool.pdm.scripts]
+run_app = "streamlit run app/token_trace_app.py"
