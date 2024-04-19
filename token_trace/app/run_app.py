@@ -8,6 +8,7 @@ import streamlit as st
 from annotated_text import annotated_text
 from plotly.subplots import make_subplots
 
+from token_trace.app.get_data import get_data
 from token_trace.compute_node_attribution import (
     # DEFAULT_ANSWER,
     DEFAULT_MODEL_NAME,
@@ -17,7 +18,6 @@ from token_trace.compute_node_attribution import (
     get_token_strs,
     load_model,
 )
-from token_trace.get_data import get_data
 from token_trace.print_prompt_info import print_prompt_info
 from token_trace.utils import get_neuronpedia_url
 
@@ -232,7 +232,9 @@ def plot_tokenwise_feature_attribution_for_layer(
 
     k_nodes = 10
 
-    def get_top_k_features(df: pd.DataFrame, layer: int, k_nodes: int):
+    def get_top_k_features(
+        df: pd.DataFrame, layer: int, k_nodes: int
+    ) -> pd.Series[int]:
         df = df[
             ["layer", "feature", "node_type", "total_abs_ie_across_token_position"]
         ].drop_duplicates()
