@@ -1,5 +1,4 @@
 from collections.abc import Sequence
-from pathlib import Path
 from typing import cast
 
 import pandas as pd
@@ -10,20 +9,20 @@ from annotated_text import annotated_text
 from pandera.typing import Series
 from plotly.subplots import make_subplots
 
-from token_trace.app.get_data import get_data
-from token_trace.compute_node_attribution import (
+from token_trace.app.get_circuit import get_circuit
+from token_trace.app.process_data import process_node_data
+from token_trace.constants import (
     # DEFAULT_ANSWER,
     DEFAULT_MODEL_NAME,
     # DEFAULT_PROMPT,
     DEFAULT_REPO_ID,
     DEFAULT_TEXT,
-    get_token_strs,
-    load_model,
 )
+from token_trace.load_pretrained_model import load_model
 from token_trace.print_prompt_info import print_prompt_info
-from token_trace.utils import get_neuronpedia_url
+from token_trace.utils import get_neuronpedia_url, get_token_strs
 
-DATA_DIR = Path("data")
+pd.options.mode.chained_assignment = None  # default='warn'
 
 
 def get_token_annotations(tokens: list[str]) -> Sequence[str | tuple[str, str, str]]:
@@ -39,11 +38,11 @@ def get_token_annotations(tokens: list[str]) -> Sequence[str | tuple[str, str, s
 
 
 def plot_indirect_effect_vs_activation(df: pd.DataFrame):
-    df = df[df["node_type"] == "feature"]
+    df = df[df["act_type"] == "act_idx"]
     fig = px.scatter(
         df,
         x="value",
-        y="indirect_effect",
+        y="ie",
         color="layer",
         title="Indirect effect vs activation",
     )
@@ -57,11 +56,11 @@ def add_section_total_attribution(df: pd.DataFrame):
     st.header("Summary of Feature Attribution")
 
     total_ie_df = df[
-        ["layer", "node_type", "layer_str", "total_abs_ie_by_layer_and_node_type"]
+        ["layer", "act_type", "total_abs_ie_by_layer_and_act_type"]
     ].drop_duplicates()
     total_ie_df["name"] = "const"
     total_ie_df = total_ie_df.sort_values(
-        ["layer", "total_abs_ie_by_layer_and_node_type"], ascending=[True, False]
+        ["layer", "total_abs_ie_by_layer_and_act_type"], ascending=[True, False]
     )
 
     left, right = st.columns(2)
@@ -69,11 +68,10 @@ def add_section_total_attribution(df: pd.DataFrame):
         # Bar chart of total attribution by layer
         fig = px.bar(
             total_ie_df,
-            x="layer_str",
-            y="total_abs_ie_by_layer_and_node_type",
-            color="node_type",
+            x="layer",
+            y="total_abs_ie_by_layer_and_act_type",
+            color="act_type",
             title="Total node attributions by layer",
-            # color="layer_str",
         )
         st.plotly_chart(
             fig,
@@ -82,49 +80,37 @@ def add_section_total_attribution(df: pd.DataFrame):
 
     with right:
         # Pie chart of total attribution by node type
-        df["total_abs_ie_by_node_type"] = df.groupby("node_type")["abs_ie"].transform(
+        df["total_abs_ie_by_act_type"] = df.groupby("act_type")["abs_ie"].transform(
             "sum"
         )
-        pie_df = df[["node_type", "total_abs_ie_by_node_type"]].drop_duplicates()
+        pie_df = df[["act_type", "total_abs_ie_by_act_type"]].drop_duplicates()
         fig = px.pie(
             pie_df,
-            values="total_abs_ie_by_node_type",
-            names="node_type",
+            values="total_abs_ie_by_act_type",
+            names="act_type",
             title="Total attribution by node type",
-            color="node_type",
+            color="act_type",
         )
         st.plotly_chart(
             fig,
             use_container_width=True,
         )
 
-    # fig = px.pie(
-    #     total_ie_df,
-    #     values="total_abs_ie_in_layer",
-    #     names="layer_str",
-    #     title="Total attribution by layer",
-    #     color="layer_str",
-    # )
-    # st.plotly_chart(
-    #     fig,
-    #     use_container_width=True,
-    # )
 
-
-def plot_bar_frac_total_abs_ie_by_layer_and_node_type(df: pd.DataFrame):
-    # Filter by node_type = feature
-    df = df[df["node_type"] == "feature"]
+def plot_bar_frac_total_abs_ie_by_layer_and_act_type(df: pd.DataFrame):
+    # Filter by act_type = feature
+    df = df[df["act_type"] == "act_idx"]
     df = df.sort_values(
-        ["layer", "frac_total_abs_ie_by_layer_and_node_type"], ascending=[True, False]
+        ["layer", "frac_total_abs_ie_by_layer_and_act_type"], ascending=[True, False]
     )
 
     fig = px.bar(
         df,
-        x="frac_total_abs_ie_by_layer_and_node_type",
+        x="frac_total_abs_ie_by_layer_and_act_type",
         y="layer",
-        text="feature",
+        text="act_idx",
         title="Fraction of total attribution within layer",
-        color="indirect_effect",
+        color="ie",
         color_continuous_scale=px.colors.diverging.Fall_r,
         color_continuous_midpoint=0,
         orientation="h",
@@ -157,22 +143,22 @@ def add_neuronpedia_buttons(df: pd.DataFrame):
     with positive:
         # NOTE: Seems like a pain to do on-click events.
         # Gonna settle for "open in neuronpedia" button.
-        pos_df = df[df["indirect_effect"] > 0]
+        pos_df = df[df["ie"] > 0]
         for layer in pos_df["layer"].sort_values().unique():
-            features = pos_df[pos_df["layer"] == layer]["feature"].values
+            features = pos_df[pos_df["layer"] == layer]["act_idx"].values
             list_name = f"layer_{layer}_ie_positive_features"
             st.link_button(
-                label=f"IE-positive features for layer {layer}",
+                label=f"ie-positive features for layer {layer}",
                 url=get_neuronpedia_url(layer, features, list_name),
             )
 
     with negative:
-        neg_df = df[df["indirect_effect"] < 0]
+        neg_df = df[df["ie"] < 0]
         for layer in neg_df["layer"].sort_values().unique():
-            features = neg_df[neg_df["layer"] == layer]["feature"].values
+            features = neg_df[neg_df["layer"] == layer]["act_idx"].values
             list_name = f"layer_{layer}_ie_negative_features"
             st.link_button(
-                label=f"IE-positive features for layer {layer}",
+                label=f"ie-positive features for layer {layer}",
                 url=get_neuronpedia_url(layer, features, list_name),
             )
 
@@ -181,14 +167,14 @@ def add_section_individual_feature_attribution(df: pd.DataFrame):
     st.header("Individual Feature Attributions")
     st.write("Here, we visualize the feature attributions for each node.")
 
-    # Filter by node_type = feature
-    df = df[df["node_type"] == "feature"]
+    # Filter by act_type = feature
+    df = df[df["act_type"] == "act_idx"]
 
     left, right = st.columns(2)
     with left:
         st.header("Fraction of Total Attribution by Layer")
         st.write("Here, we visualize the fraction of total attribution by layer.")
-        plot_bar_frac_total_abs_ie_by_layer_and_node_type(df)
+        plot_bar_frac_total_abs_ie_by_layer_and_act_type(df)
 
     with right:
         st.header("Open in NeuronPedia")
@@ -199,32 +185,31 @@ def plot_tokenwise_feature_attribution_for_layer(
     df: pd.DataFrame,
     layer: int,
     tokens: list[str],
-    with_button: bool = True,
     title: str = "Indirect effect by token position",
 ):
     def get_ie_df_for_layer_and_feature(df: pd.DataFrame, layer: int, feature: int):
-        df = df[(df["layer"] == layer) & (df["feature"] == feature)]
-        indirect_effects = df[["indirect_effect", "token", "layer", "feature"]]
-        # Create a combined "layer_and_feature" column
-        indirect_effects["layer_and_feature"] = indirect_effects.apply(
-            lambda row: f"({int(row['layer'])}, {int(row['feature'])})", axis=1
+        df = df[(df["layer"] == layer) & (df["act_idx"] == feature)]
+        indirect_effects = df[["ie", "token_idx", "layer", "act_idx"]]
+        # Create a combined "layer_and_act_idx" column
+        indirect_effects["layer_and_act_idx"] = indirect_effects.apply(
+            lambda row: f"({int(row['layer'])}, {int(row['act_idx'])})", axis=1
         )
         # Impute missing tokens
         missing_rows = []
         for token_idx, _ in enumerate(tokens):
-            if token_idx not in indirect_effects["token"].values:
+            if token_idx not in indirect_effects["token_idx"].values:
                 missing_rows.append(
                     {
-                        "token": token_idx,
-                        "indirect_effect": 0,
+                        "token_idx": token_idx,
+                        "ie": 0,
                         "layer": layer,
-                        "feature": feature,
-                        "layer_and_feature": f"({layer}, {feature})",
+                        "act_idx": feature,
+                        "layer_and_act_idx": f"({layer}, {feature})",
                     }
                 )
         missing_rows_df = pd.DataFrame(missing_rows)
         indirect_effects = pd.concat([indirect_effects, missing_rows_df])
-        indirect_effects["token_str"] = indirect_effects["token"].apply(
+        indirect_effects["token_str"] = indirect_effects["token_idx"].apply(
             lambda idx: tokens[idx]
         )
         return indirect_effects
@@ -236,45 +221,21 @@ def plot_tokenwise_feature_attribution_for_layer(
 
     def get_top_k_features(df: pd.DataFrame, layer: int, k_nodes: int) -> Series[int]:
         df = df[
-            ["layer", "feature", "node_type", "total_abs_ie_across_token_position"]
+            ["layer", "act_idx", "act_type", "total_abs_ie_across_token_position"]
         ].drop_duplicates()
-        df = df[df["node_type"] == "feature"]
+        df = df[df["act_type"] == "feature"]
         df = df[df["layer"] == layer]
         df = df.sort_values(
             ["total_abs_ie_across_token_position", "layer"], ascending=[False, True]
         )
         top_k = df.head(k_nodes)
-        features = top_k[top_k["layer"] == layer]["feature"]
+        features = top_k[top_k["layer"] == layer]["act_idx"]
 
         return cast(Series[int], features)
 
     features = get_top_k_features(df, layer, k_nodes)
 
-    if with_button:
-        if "my_lst" not in st.session_state:
-            st.session_state["my_lst"] = [(layer, feature) for feature in features]
-
-        reset_button = st.button("Reset to layer", key="clear_button")
-        if reset_button:
-            st.session_state["my_lst"] = [(layer, feature) for feature in features]
-            st.write(st.session_state["my_lst"])
-
-        with st.expander("Add custom features"):
-            new_layer = st.text_input("Enter a layer index (0-11)")
-            feature = st.text_input("Enter a feature index (0-24575)")
-            add_button = st.button("Add", key="add_button")
-
-            if add_button:
-                if len(new_layer) > 0 and len(feature) > 0:
-                    st.session_state["my_lst"] += [(new_layer, feature)]
-                    st.write(st.session_state["my_lst"])
-                else:
-                    st.warning("Enter text")
-
-    if with_button:
-        layers_and_features = st.session_state["my_lst"]
-    else:
-        layers_and_features = [(layer, feature) for feature in features]
+    layers_and_features = [(layer, feature) for feature in features]
 
     dfs = []
     for layer, feature_idx in layers_and_features:
@@ -286,9 +247,9 @@ def plot_tokenwise_feature_attribution_for_layer(
         # Bar plot of indirect effect by token position
         fig = px.bar(
             indirect_effects,
-            y="token",
-            x="indirect_effect",
-            color="layer_and_feature",
+            y="token_idx",
+            x="ie",
+            color="layer_and_act_idx",
             title=title,
             orientation="h",
         )
@@ -308,8 +269,8 @@ def plot_tokenwise_feature_attribution_for_layer(
 
 def add_section_tokenwise_feature_attribution(tokens: list[str], df: pd.DataFrame):
     st.header("Tokenwise Feature Attributions")
-    # Filter by node_type = feature
-    df = df[df["node_type"] == "feature"]
+    # Filter by act_type = feature
+    df = df[df["act_type"] == "act_idx"]
     DEFAULT_LAYER = 8
     # DEFAULT_FEATURE_IDX = 4185
     layer = st.number_input("Layer", min_value=0, max_value=11, value=DEFAULT_LAYER)
@@ -332,7 +293,6 @@ def add_section_tokenwise_all_layers(tokens: list[str], df: pd.DataFrame):
                 df,
                 layer,
                 tokens,
-                with_button=False,
                 title=f"Layer {layer}: Indirect effect by token position",
             )
             st.plotly_chart(subfig, use_container_width=True)
@@ -342,7 +302,6 @@ def add_section_tokenwise_all_layers(tokens: list[str], df: pd.DataFrame):
                 df,
                 layer,
                 tokens,
-                with_button=False,
                 title=f"Layer {layer}: Indirect effect by token position",
             )
             st.plotly_chart(subfig, use_container_width=True)
@@ -352,7 +311,6 @@ def add_section_tokenwise_all_layers(tokens: list[str], df: pd.DataFrame):
                 df,
                 layer,
                 tokens,
-                with_button=False,
                 title=f"Layer {layer}: Indirect effect by token position",
             )
 
@@ -363,20 +321,9 @@ def add_section_tokenwise_all_layers(tokens: list[str], df: pd.DataFrame):
                 df,
                 layer,
                 tokens,
-                with_button=False,
                 title=f"Layer {layer}: Indirect effect by token position",
             )
             st.plotly_chart(subfig, use_container_width=True)
-
-    # for layer in layers:
-    #     # Calculate index
-    #     # row = (layer // 4) + 1
-    #     # col = (layer % 4) + 1
-    #     subfig = plot_tokenwise_feature_attribution_for_layer(df, layer, tokens, with_button=False)
-    #     st.plotly_chart(subfig, use_container_width=True)
-    #     # TODO: what other plots can we make?
-
-    # st.plotly_chart(fig, use_container_width=True)
 
 
 def visualize_dataframe(df: pd.DataFrame):
@@ -430,7 +377,8 @@ def run_app():
         print_prompt_info(prompt, response, model, print_fn=st.write)
 
     # Load or compute node attributions
-    df = get_data(text)
+    circuit = get_circuit(text)
+    df = process_node_data(circuit.node_ie_df)
 
     # TODO: Summarise SAE errors
     add_section_total_attribution(df.copy())

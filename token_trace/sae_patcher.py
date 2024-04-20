@@ -109,11 +109,11 @@ class SAEPatcher:
         self, node_type: NodeType = "all"
     ) -> Float[torch.Tensor, "n_batch n_token n_nodes"]:
         if node_type == "feature":
-            return self.sae_feature_acts.detach()
+            return self.sae_feature_acts
         elif node_type == "error":
-            return self.sae_errors.detach()
+            return self.sae_errors
         elif node_type == "all":
-            return torch.cat([self.sae_feature_acts, self.sae_errors], dim=-1).detach()
+            return torch.cat([self.sae_feature_acts, self.sae_errors], dim=-1)
         else:
             raise ValueError(f"Invalid node_type: {node_type}")
 
@@ -123,16 +123,14 @@ class SAEPatcher:
         if node_type == "feature":
             if self.sae_feature_acts.grad is None:
                 raise RuntimeError("Gradients are not available.")
-            return self.sae_feature_acts.grad.detach()
+            return self.sae_feature_acts.grad
         elif node_type == "error":
             if self.sae_errors.grad is None:
                 raise RuntimeError("Gradients are not available.")
-            return self.sae_errors.grad.detach()
+            return self.sae_errors.grad
         elif node_type == "all":
             if self.sae_feature_acts.grad is None or self.sae_errors.grad is None:
                 raise RuntimeError("Gradients are not available.")
-            return torch.cat(
-                [self.sae_feature_acts.grad, self.sae_errors.grad], dim=-1
-            ).detach()
+            return torch.cat([self.sae_feature_acts.grad, self.sae_errors.grad], dim=-1)
         else:
             raise ValueError(f"Invalid node_type: {node_type}")

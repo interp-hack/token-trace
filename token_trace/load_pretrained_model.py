@@ -8,9 +8,7 @@ from sae_lens import SparseAutoencoder
 from sae_lens.training.utils import BackwardsCompatibleUnpickler
 from transformer_lens import HookedTransformer
 
-from token_trace.types import (
-    ModuleName,
-)
+from token_trace.types import ModuleName, SAEDict
 
 DEFAULT_MODEL_NAME = "gpt2-small"
 DEFAULT_REPO_ID = "jbloom/GPT2-Small-SAEs"
@@ -23,13 +21,15 @@ DEVICE = "cpu"
 
 
 @functools.lru_cache(maxsize=1)
-def load_model(model_name: str) -> HookedTransformer:
+def load_model(model_name: str = DEFAULT_MODEL_NAME) -> HookedTransformer:
     if model_name != DEFAULT_MODEL_NAME:
         raise ValueError(f"Unknown model: {model_name}")
     return HookedTransformer.from_pretrained(model_name, device=DEVICE)
 
 
-def load_sae(layer: int) -> SparseAutoencoder:
+def load_sae(layer: int, model_name: str = DEFAULT_MODEL_NAME) -> SparseAutoencoder:
+    if model_name != DEFAULT_MODEL_NAME:
+        raise ValueError(f"Unknown model: {model_name}")
     filename = (
         f"final_sparse_autoencoder_gpt2-small_blocks.{layer}.hook_resid_pre_24576.pt"
     )
@@ -48,12 +48,18 @@ def load_sae(layer: int) -> SparseAutoencoder:
 
 
 @functools.lru_cache(maxsize=1)
-def load_sae_dict(model_name: str) -> dict[ModuleName, SparseAutoencoder]:
+def load_sae_dict(model_name: str = DEFAULT_MODEL_NAME) -> SAEDict:
     if model_name != DEFAULT_MODEL_NAME:
         raise ValueError(f"Unknown model: {model_name}")
     # TODO: un-hardcode n_layers
     n_layers = 12
-    return {ModuleName(str(layer)): load_sae(layer) for layer in range(n_layers)}
+
+    sae_dict: SAEDict = {}
+    for layer in range(n_layers):
+        sae = load_sae(layer, model_name=model_name)
+        name = ModuleName(sae.cfg.hook_point)
+        sae_dict[name] = sae
+    return sae_dict
 
 
 if __name__ == "__main__":

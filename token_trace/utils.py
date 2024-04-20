@@ -1,26 +1,13 @@
 import json
 import urllib.parse
 import webbrowser
-from pathlib import Path
-from typing import Any
+from typing import cast
 
 import torch
 from transformer_lens import HookedTransformer
 
-
-def dump_jsonl(filepath: str | Path, objs: list[Any]):
-    with open(filepath, "w") as f:
-        for entry in objs:
-            json.dump(entry, f)
-            f.write("\n")
-
-
-def load_jsonl(filepath: str | Path) -> list[Any]:
-    objs = []
-    with open(filepath) as f:
-        for line in f:
-            objs.append(json.loads(line))
-    return objs
+from token_trace.load_pretrained_model import load_model
+from token_trace.types import ModuleName
 
 
 def get_neuronpedia_url(
@@ -55,6 +42,18 @@ def dense_to_sparse(tensor: torch.Tensor) -> torch.Tensor:
     )
 
 
-def last_token_loss(model: HookedTransformer, prompt: str) -> torch.Tensor:
-    loss = model(prompt, return_type="loss", loss_per_token=True)
+def get_layer_from_module_name(module_name: ModuleName) -> int:
+    # NOTE: currently hardcoded to Joseph's naming convention
+    # e.g. "blocks.0.hook_resid_pre" -> 0
+    return int(module_name.split(".")[1])
+
+
+def get_token_strs(model_name: str, text: str) -> list[str]:
+    model = load_model(model_name)
+    return cast(list[str], model.to_str_tokens(text))
+
+
+def last_token_prediction_loss(model: HookedTransformer, text: str) -> torch.Tensor:
+    """Compute the prediction loss of the last token in the text"""
+    loss = model(text, return_type="loss", loss_per_token=True)
     return loss[0, -1]
