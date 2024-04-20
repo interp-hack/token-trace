@@ -1,2 +1,1 @@
-from .node_attribution import compute_node_attribution as compute_node_attribution
 from .sparse_feature_circuit import SparseFeatureCircuit as SparseFeatureCircuit

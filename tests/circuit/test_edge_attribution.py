@@ -8,7 +8,8 @@ from token_trace.circuit.node_attribution import NodeAttributionDataFrame
 from token_trace.sae_activation_cache import SAEActivationCache
 
 
-@pytest.mark.xfail("Currently failing due to SAE dict having only one SAE")
+# NOTE: currently failing due to SAE dict having only one SAE
+@pytest.mark.xfail
 def test_compute_node_attribution(
     node_attribution_df: NodeAttributionDataFrame,
     sae_activation_cache: SAEActivationCache,

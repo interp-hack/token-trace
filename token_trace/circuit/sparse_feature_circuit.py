@@ -132,9 +132,9 @@ class SparseFeatureCircuit:
 
     """ Save and load """
 
-    def save(self, save_dir: pathlib.Path, prefix: str = "circuit"):
+    def save(self, save_dir: pathlib.Path):
         # Save constructor args
-        with open(save_dir / (prefix + "_args.json"), "w") as f:
+        with open(save_dir / "args.json", "w") as f:
             json.dump(
                 {
                     "model_name": self.model_name,
@@ -149,19 +149,24 @@ class SparseFeatureCircuit:
             )
 
         # Save results
-        self.node_ie_df.to_csv(save_dir / (prefix + "_node.csv"))
-        self.edge_ie_df.to_csv(save_dir / (prefix + "_edge.csv"))
+        if hasattr(self, "node_ie_df"):
+            self.node_ie_df.to_csv(save_dir / "node.csv")
+        if hasattr(self, "edge_ie_df"):
+            self.edge_ie_df.to_csv(save_dir / "edge.csv")
 
     @staticmethod
-    def load(save_dir: pathlib.Path, prefix: str = "circuit") -> "SparseFeatureCircuit":
-        with open(save_dir / (prefix + "_args.json")) as f:
+    def load(save_dir: pathlib.Path) -> "SparseFeatureCircuit":
+        with open(save_dir / "args.json") as f:
             args = json.load(f)
 
-        # Load results
-        node_ie_df = pd.read_csv(save_dir / (prefix + "_node.csv"), index_col=0)
-        edge_ie_df = pd.read_csv(save_dir / (prefix + "_edge.csv"), index_col=0)
-
         circuit = SparseFeatureCircuit(**args)
-        circuit.node_ie_df = validate_node_attribution(node_ie_df)
-        circuit.edge_ie_df = validate_edge_attribution(edge_ie_df)
+
+        # Load results
+        if (save_dir / "node.csv").exists():
+            node_ie_df = pd.read_csv(save_dir / "node.csv", index_col=0)
+            circuit.node_ie_df = validate_node_attribution(node_ie_df)
+        if (save_dir / "edge.csv").exists():
+            edge_ie_df = pd.read_csv(save_dir / "edge.csv", index_col=0)
+            circuit.edge_ie_df = validate_edge_attribution(edge_ie_df)
+
         return circuit

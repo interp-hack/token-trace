@@ -1,6 +1,6 @@
-from token_trace.app.get_data import get_data
+from token_trace.app.get_circuit import get_circuit
 
 
 def test_get_data(text: str):
-    df = get_data(text, force_rerun=True)
-    assert not df.empty
+    circuit = get_circuit(text, force_rerun=True)
+    assert not circuit.node_ie_df.empty
