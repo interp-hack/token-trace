@@ -1,0 +1,8 @@
+{
+    "model_name": "gpt2-small",
+    "text": "Hello world",
+    "min_node_abs_ie": 0.0,
+    "max_n_nodes": 10000,
+    "min_edge_abs_ie": 0.0,
+    "max_n_edges": -1
+}
