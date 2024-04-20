@@ -13,7 +13,6 @@ from token_trace.constants import (
     DEFAULT_TEXT,
 )
 from token_trace.load_pretrained_model import load_model, load_sae_dict
-from token_trace.utils import last_token_prediction_loss
 
 ROOT_DIR = pathlib.Path(__file__).parent.parent.parent
 DATA_DIR = ROOT_DIR / "app" / "data"
@@ -71,8 +70,9 @@ def load_or_compute_data(text: str, force_rerun: bool = False) -> pd.DataFrame:
         # Compute node attributions
         model = load_model(DEFAULT_MODEL_NAME)
         sae_dict = load_sae_dict(DEFAULT_MODEL_NAME)
-        metric_fn = last_token_prediction_loss
-        df = compute_node_attribution(model, sae_dict, metric_fn, text)
+        # metric_fn = last_token_prediction_loss
+        # sae_activation_cache = metric_fn(model, sae_dict, text)
+        df = compute_node_attribution(model, sae_dict, text)
         df.to_csv(filepath)
         add_file_and_delete_old(filepath)
 
