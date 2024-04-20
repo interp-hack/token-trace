@@ -1,29 +1,32 @@
-from typing import cast
+from typing import cast, get_args
 
 import pandas as pd
 import pandera as pa
+from pandera.typing import DataFrame, Series
 from transformer_lens import HookedTransformer
 
 from token_trace.load_pretrained_model import load_model
 from token_trace.sae_activation_cache import get_sae_activation_cache
-from token_trace.types import MetricFunction, SAEDict
+from token_trace.types import MetricFunction, ModuleType, NodeType, SAEDict
 from token_trace.utils import get_layer_from_module_name
 
-node_df_schema = pa.DataFrameSchema(
-    {
-        "layer": pa.Column(int),
-        "module_name": pa.Column(str),
-        "example_idx": pa.Column(int),
-        "example_str": pa.Column(str),
-        "node_idx": pa.Column(int),
-        "node_type": pa.Column(str),
-        "token_idx": pa.Column(int),
-        "token_str": pa.Column(str),
-        "value": pa.Column(float),
-        "grad": pa.Column(float),
-        "indirect_effect": pa.Column(float),
-    }
-)
+
+class NodeAttributionSchema(pa.SchemaModel):
+    layer: Series[int]
+    module_type: Series[str] = pa.Field(isin=get_args(ModuleType), nullable=False)
+    module_name: Series[str]
+    example_idx: Series[int]
+    example_str: Series[str]
+    node_idx: Series[int]
+    node_type: Series[str] = pa.Field(isin=get_args(NodeType), nullable=False)
+    token_idx: Series[int]
+    token_str: Series[str]
+    value: Series[float]
+    grad: Series[float]
+    indirect_effect: Series[float]
+
+
+NodeAttributionDataFrame = DataFrame[NodeAttributionSchema]
 
 
 def get_token_strs(model_name: str, text: str) -> list[str]:
@@ -31,12 +34,17 @@ def get_token_strs(model_name: str, text: str) -> list[str]:
     return cast(list[str], model.to_str_tokens(text))
 
 
+def validate_node_attribution(node_df: pd.DataFrame) -> NodeAttributionDataFrame:
+    validated_df = NodeAttributionSchema.validate(node_df)
+    return cast(NodeAttributionDataFrame, validated_df)
+
+
 def compute_node_attribution(
     model: HookedTransformer,
     sae_dict: SAEDict,
     metric_fn: MetricFunction,
     text: str,
-) -> pd.DataFrame:
+) -> NodeAttributionDataFrame:
     # Get the token strings.
     text_tokens = model.to_str_tokens(text)
     sae_cache_dict = get_sae_activation_cache(model, sae_dict, metric_fn, text)
@@ -61,6 +69,7 @@ def compute_node_attribution(
                 {
                     "layer": layer,
                     "module_name": module_name,
+                    "module_type": "resid",
                     "example_idx": example_idx.item(),
                     "example_str": text,
                     "node_idx": node_idx.item(),
@@ -77,5 +86,5 @@ def compute_node_attribution(
     # Filter out zero indirect effects
     df = df[df["indirect_effect"] != 0]
     print(f"{len(df)} non-zero indirect effects found.")
-    df = node_df_schema.validate(df)
-    return df
+    validated_df = NodeAttributionSchema.validate(df)
+    return cast(NodeAttributionDataFrame, validated_df)
