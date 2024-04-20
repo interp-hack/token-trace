@@ -2,6 +2,51 @@
 
 
 
+## v0.2.0 (2024-04-20)
+
+### Chore
+
+* chore: download model, saes in dockerfile ([`14453d3`](https://github.com/token-trace/token-trace/commit/14453d318fe3d57d58ce58f8a6983209cf1193ac))
+
+* chore: update README ([`e0b4a3a`](https://github.com/token-trace/token-trace/commit/e0b4a3abbeb7cbbed352f906dd5b05a5e362b81d))
+
+### Feature
+
+* feat: sparse feature circuit (#8)
+
+* refactor: multiple var names
+
+* fix: tests
+
+* test: add pandera typechecks
+
+* feat: SparseFeatureCircuit
+
+* fix: app
+
+* fix: minor
+
+---------
+
+Co-authored-by: Daniel Tan &lt;dtch1997@users.noreply.github.com&gt; ([`0d0b386`](https://github.com/token-trace/token-trace/commit/0d0b38618fd0789990d65db29e0dc98bda70faef))
+
+### Refactor
+
+* refactor: client (#7)
+
+* chore: update dependencies
+
+* refactor: move main app code into token_trace package
+
+* refactor: merge client, server
+
+* fix: minor
+
+---------
+
+Co-authored-by: Daniel Tan &lt;dtch1997@users.noreply.github.com&gt; ([`d34ac69`](https://github.com/token-trace/token-trace/commit/d34ac6943133f3eb638ab64620ae3b3ecbefabc2))
+
+
 ## v0.1.0 (2024-04-19)
 
 ### Chore
