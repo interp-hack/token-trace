@@ -2,6 +2,17 @@
 
 
 
+## v0.2.1 (2024-04-20)
+
+### Chore
+
+* chore: remove unused data files ([`43dfcda`](https://github.com/token-trace/token-trace/commit/43dfcda4593bd8f972384aa5697a630034e27fe8))
+
+### Fix
+
+* fix: column names in app ([`0a65e26`](https://github.com/token-trace/token-trace/commit/0a65e2610a02636f920d3c202c05e5348f347a06))
+
+
 ## v0.2.0 (2024-04-20)
 
 ### Chore
