@@ -4,7 +4,9 @@ import urllib.parse
 import webbrowser
 from typing import cast
 
+import pandas as pd
 import torch
+from pandera import DataFrameModel
 from transformer_lens import HookedTransformer
 
 from token_trace.load_pretrained_model import load_model
@@ -72,3 +74,13 @@ def setup_logger(name: str, level: int = logging.INFO):
         ch.setFormatter(formatter)
         logger.addHandler(ch)
     return logger
+
+
+def get_empty_dataframe_from_pa_model(model: DataFrameModel) -> pd.DataFrame:
+    schema = model.to_schema()
+    column_names = list(schema.columns.keys())
+    data_types = {
+        column_name: column_type.dtype.type.name
+        for column_name, column_type in schema.columns.items()
+    }
+    return pd.DataFrame(columns=column_names).astype(data_types)
