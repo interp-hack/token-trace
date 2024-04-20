@@ -1,5 +1,4 @@
 from collections.abc import Sequence
-from pathlib import Path
 from typing import cast
 
 import pandas as pd
@@ -22,7 +21,6 @@ from token_trace.load_pretrained_model import load_model
 from token_trace.print_prompt_info import print_prompt_info
 from token_trace.utils import get_neuronpedia_url, get_token_strs
 
-DATA_DIR = Path("data")
 pd.options.mode.chained_assignment = None  # default='warn'
 
 

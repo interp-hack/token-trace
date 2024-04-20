@@ -7,6 +7,7 @@ import torch
 from transformer_lens import HookedTransformer
 
 from token_trace.load_pretrained_model import load_model
+from token_trace.types import ModuleName
 
 
 def get_neuronpedia_url(
@@ -39,6 +40,12 @@ def dense_to_sparse(tensor: torch.Tensor) -> torch.Tensor:
         device=tensor.device,
         dtype=tensor.dtype,
     )
+
+
+def get_layer_from_module_name(module_name: ModuleName) -> int:
+    # NOTE: currently hardcoded to Joseph's naming convention
+    # e.g. "blocks.0.hook_resid_pre" -> 0
+    return int(module_name.split(".")[1])
 
 
 def get_token_strs(model_name: str, text: str) -> list[str]:

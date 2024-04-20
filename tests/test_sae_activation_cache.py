@@ -16,12 +16,6 @@ def device() -> torch.device:
     return torch.device("cpu")
 
 
-@pytest.fixture()
-def sae_dict(sae: SparseAutoencoder) -> dict[ModuleName, SparseAutoencoder]:
-    sae_dict = {ModuleName(sae.cfg.hook_point): sae}
-    return sae_dict
-
-
 def test_get_sae_cache_dict(
     model: HookedTransformer, sae_dict: dict[ModuleName, SparseAutoencoder], text: str
 ):

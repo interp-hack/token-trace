@@ -7,20 +7,21 @@ from transformer_lens import HookedTransformer
 from token_trace.load_pretrained_model import load_model
 from token_trace.sae_activation_cache import get_sae_activation_cache
 from token_trace.types import MetricFunction, SAEDict
+from token_trace.utils import get_layer_from_module_name
 
 node_df_schema = pa.DataFrameSchema(
     {
         "layer": pa.Column(int),
+        "module_name": pa.Column(str),
         "example_idx": pa.Column(int),
+        "example_str": pa.Column(str),
         "node_idx": pa.Column(int),
+        "node_type": pa.Column(str),
         "token_idx": pa.Column(int),
+        "token_str": pa.Column(str),
         "value": pa.Column(float),
         "grad": pa.Column(float),
         "indirect_effect": pa.Column(float),
-        "node_type": pa.Column(str),
-        "module_name": pa.Column(str),
-        "token_str": pa.Column(str),
-        "example_str": pa.Column(str),
     }
 )
 
@@ -38,18 +39,13 @@ def compute_node_attribution(
 ) -> pd.DataFrame:
     # Get the token strings.
     text_tokens = model.to_str_tokens(text)
-    prompt_tokens: list[str] = text_tokens[:-1]  # pyright: ignore
-    response_token: list[str] = text_tokens[-1]  # pyright: ignore
-
-    prompt_str = "".join(prompt_tokens)
-    response_str = response_token
     sae_cache_dict = get_sae_activation_cache(model, sae_dict, metric_fn, text)
 
     # Construct dataframe.
     rows = []
     for module_name, module_activations in sae_cache_dict.items():
         print(f"Processing module {module_name}")
-        layer = int(module_name)
+        layer = get_layer_from_module_name(module_name)
         acts = module_activations.activations.coalesce()
         grads = module_activations.gradients.coalesce()
         effects = acts * grads
@@ -65,14 +61,14 @@ def compute_node_attribution(
                 {
                     "layer": layer,
                     "module_name": module_name,
+                    "example_idx": example_idx.item(),
+                    "example_str": text,
                     "node_idx": node_idx.item(),
-                    "token": token_idx.item(),
+                    "token_idx": token_idx.item(),
                     "token_str": text_tokens[token_idx],
                     "value": act.item(),
                     "grad": grad.item(),
                     "indirect_effect": ie_atp.item(),
-                    "prompt_str": prompt_str,
-                    "response_str": response_str,
                     "node_type": "feature" if node_idx < 24576 else "error",
                 }
             )
@@ -81,4 +77,5 @@ def compute_node_attribution(
     # Filter out zero indirect effects
     df = df[df["indirect_effect"] != 0]
     print(f"{len(df)} non-zero indirect effects found.")
+    df = node_df_schema.validate(df)
     return df

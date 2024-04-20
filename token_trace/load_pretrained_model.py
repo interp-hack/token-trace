@@ -51,7 +51,13 @@ def load_sae_dict(model_name: str) -> SAEDict:
         raise ValueError(f"Unknown model: {model_name}")
     # TODO: un-hardcode n_layers
     n_layers = 12
-    return {ModuleName(str(layer)): load_sae(layer) for layer in range(n_layers)}
+
+    sae_dict: SAEDict = {}
+    for layer in range(n_layers):
+        sae = load_sae(layer)
+        name = ModuleName(sae.cfg.hook_point)
+        sae_dict[name] = sae
+    return sae_dict
 
 
 if __name__ == "__main__":
