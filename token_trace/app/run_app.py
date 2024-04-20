@@ -192,7 +192,7 @@ def plot_tokenwise_feature_attribution_for_layer(
         indirect_effects = df[["ie", "token_idx", "layer", "act_idx"]]
         # Create a combined "layer_and_act_idx" column
         indirect_effects["layer_and_act_idx"] = indirect_effects.apply(
-            lambda row: f"({int(row['layer'])}, {int(row["act_idx"])})", axis=1
+            lambda row: f"({int(row['layer'])}, {int(row['act_idx'])})", axis=1
         )
         # Impute missing tokens
         missing_rows = []
