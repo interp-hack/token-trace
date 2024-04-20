@@ -45,12 +45,10 @@ def load_or_compute_circuit(
         circuit = SparseFeatureCircuit.load(DATA_DIR / prefix)
     else:
         save_dir.mkdir(exist_ok=True, parents=True)
-        circuit = SparseFeatureCircuit(
-            model_name=DEFAULT_MODEL_NAME, text=text, max_n_nodes=10_000
+        circuit = SparseFeatureCircuit(model_name=DEFAULT_MODEL_NAME, text=text)
+        circuit.compute_sae_activation_cache().compute_node_attributions().save(
+            save_dir
         )
-        # NOTE: we do not need the full circuit yet
-        circuit.compute_sae_activation_cache().compute_node_attributions()
-        circuit.save(save_dir)
         add_path_and_delete_old(save_dir)
 
     return circuit

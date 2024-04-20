@@ -1,3 +1,4 @@
+import logging
 from typing import cast, get_args
 
 import pandas as pd
@@ -8,7 +9,7 @@ from transformer_lens import HookedTransformer
 from token_trace.load_pretrained_model import load_model
 from token_trace.sae_activation_cache import SAEActivationCache
 from token_trace.types import ActType, ModuleType
-from token_trace.utils import get_layer_from_module_name
+from token_trace.utils import get_layer_from_module_name, setup_logger
 
 
 class NodeAttributionSchema(pa.SchemaModel):
@@ -30,6 +31,8 @@ class NodeAttributionSchema(pa.SchemaModel):
 
 
 NodeAttributionDataFrame = DataFrame[NodeAttributionSchema]
+
+logger = setup_logger(__name__, logging.DEBUG)
 
 
 def get_nodes_in_module(
@@ -62,7 +65,8 @@ def filter_nodes(
         df = df[node_index_cols + ["node_abs_ie"]].drop_duplicates()
         df = df.sort_values("node_abs_ie", ascending=False)
         df = df.head(max_n_nodes)
-        df = node_ie_df.merge(df, on=node_index_cols, how="inner")
+        df = node_ie_df.merge(df, on=node_index_cols + ["node_abs_ie"], how="inner")
+        logger.debug(f"{len(df)} nodes selected.")
         return validate_node_attribution(df)
 
 
@@ -85,7 +89,7 @@ def compute_node_attribution(
     # Construct dataframe.
     rows = []
     for module_name, module_activations in sae_activation_cache.items():
-        print(f"Processing module {module_name}")
+        logger.info(f"Processing module {module_name}")
         layer = get_layer_from_module_name(module_name)
         n_features = module_activations.n_features
         acts = module_activations.activations.coalesce()

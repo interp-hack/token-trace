@@ -1,3 +1,4 @@
+import logging
 from typing import cast, get_args
 
 import pandas as pd
@@ -10,6 +11,7 @@ from token_trace.circuit.node_attribution import (
 )
 from token_trace.sae_activation_cache import SAEActivationCache
 from token_trace.types import ModuleName, ModuleType
+from token_trace.utils import setup_logger
 
 
 class EdgeAttributionSchema(pa.SchemaModel):
@@ -35,6 +37,8 @@ class EdgeAttributionSchema(pa.SchemaModel):
 
 
 EdgeAttributionDataFrame = DataFrame[EdgeAttributionSchema]
+
+logger = setup_logger(__name__, logging.DEBUG)
 
 
 def validate_edge_attribution(edge_df: pd.DataFrame) -> EdgeAttributionDataFrame:
@@ -96,9 +100,10 @@ def compute_edge_attribution(
             node_ie_df, module_name=prev_module_name
         )
 
-        print(f"Finding edges between {curr_module_name} and {prev_module_name}")
+        logger.info(f"Finding edges between {curr_module_name} and {prev_module_name}")
 
         for _, downstream_node in nodes_in_curr_layer.iterrows():
+            logger.debug(f"Processing downstream node {downstream_node}")
             # backprop the downstream node activation
             d_example_idx = downstream_node.example_idx
             d_token_idx = downstream_node.token_idx

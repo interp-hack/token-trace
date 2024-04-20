@@ -1,4 +1,5 @@
 import json
+import logging
 import urllib.parse
 import webbrowser
 from typing import cast
@@ -57,3 +58,17 @@ def last_token_prediction_loss(model: HookedTransformer, text: str) -> torch.Ten
     """Compute the prediction loss of the last token in the text"""
     loss = model(text, return_type="loss", loss_per_token=True)
     return loss[0, -1]
+
+
+def setup_logger(name: str, level: int = logging.INFO):
+    logger = logging.getLogger(name)
+    logger.setLevel(level)
+
+    if not logger.hasHandlers():
+        formatter = logging.Formatter(
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        )
+        ch = logging.StreamHandler()
+        ch.setFormatter(formatter)
+        logger.addHandler(ch)
+    return logger

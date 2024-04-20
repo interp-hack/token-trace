@@ -38,7 +38,7 @@ def get_token_annotations(tokens: list[str]) -> Sequence[str | tuple[str, str, s
 
 
 def plot_indirect_effect_vs_activation(df: pd.DataFrame):
-    df = df[df["act_type"] == "act_idx"]
+    df = df[df["act_type"] == "feature"]
     fig = px.scatter(
         df,
         x="value",
@@ -99,7 +99,7 @@ def add_section_total_attribution(df: pd.DataFrame):
 
 def plot_bar_frac_total_abs_ie_by_layer_and_act_type(df: pd.DataFrame):
     # Filter by act_type = feature
-    df = df[df["act_type"] == "act_idx"]
+    df = df[df.act_type == "feature"]
     df = df.sort_values(
         ["layer", "frac_total_abs_ie_by_layer_and_act_type"], ascending=[True, False]
     )
@@ -167,8 +167,7 @@ def add_section_individual_feature_attribution(df: pd.DataFrame):
     st.header("Individual Feature Attributions")
     st.write("Here, we visualize the feature attributions for each node.")
 
-    # Filter by act_type = feature
-    df = df[df["act_type"] == "act_idx"]
+    df = df[df["act_type"] == "feature"]
 
     left, right = st.columns(2)
     with left:
@@ -265,23 +264,6 @@ def plot_tokenwise_feature_attribution_for_layer(
 
     else:
         return None
-
-
-def add_section_tokenwise_feature_attribution(tokens: list[str], df: pd.DataFrame):
-    st.header("Tokenwise Feature Attributions")
-    # Filter by act_type = feature
-    df = df[df["act_type"] == "act_idx"]
-    DEFAULT_LAYER = 8
-    # DEFAULT_FEATURE_IDX = 4185
-    layer = st.number_input("Layer", min_value=0, max_value=11, value=DEFAULT_LAYER)
-    layer = int(layer)
-    # feature = st.number_input("Feature index", min_value=0, max_value=24576, value=DEFAULT_FEATURE_IDX)
-
-    fig = plot_tokenwise_feature_attribution_for_layer(df, layer, tokens)
-    st.plotly_chart(
-        fig,
-        use_container_width=True,
-    )
 
 
 def add_section_tokenwise_all_layers(tokens: list[str], df: pd.DataFrame):
@@ -384,5 +366,4 @@ def run_app():
     add_section_total_attribution(df.copy())
     plot_indirect_effect_vs_activation(df.copy())
     add_section_individual_feature_attribution(df.copy())
-    # add_section_tokenwise_feature_attribution(tokens, df.copy())
     add_section_tokenwise_all_layers(tokens, df.copy())

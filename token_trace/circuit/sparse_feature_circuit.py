@@ -52,7 +52,7 @@ class SparseFeatureCircuit:
         model_name: str = DEFAULT_MODEL_NAME,
         text: str = DEFAULT_TEXT,
         min_node_abs_ie: float = 0.0,
-        max_n_nodes: int = 200,
+        max_n_nodes: int = -1,
         min_edge_abs_ie: float = 0.0,
         max_n_edges: int = -1,
     ):
@@ -74,13 +74,11 @@ class SparseFeatureCircuit:
         return self
 
     def compute_node_attributions(self) -> "SparseFeatureCircuit":
-        # TODO: implement
-        node_df = compute_node_attribution(
+        self.node_ie_df = compute_node_attribution(
             model=self.model,
             sae_activation_cache=self.sae_activation_cache,
             text=self.text,
         )
-        self.node_ie_df = node_df
         return self
 
     def filter_nodes(self) -> "SparseFeatureCircuit":
