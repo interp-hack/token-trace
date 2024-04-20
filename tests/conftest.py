@@ -16,5 +16,5 @@ def sae() -> SparseAutoencoder:
 
 
 @pytest.fixture()
-def prompt() -> str:
+def text() -> str:
     return "Hello world"

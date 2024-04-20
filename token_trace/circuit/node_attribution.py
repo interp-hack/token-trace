@@ -1,30 +1,28 @@
 from typing import cast
 
 import pandas as pd
-import torch
+import pandera as pa
 from transformer_lens import HookedTransformer
 
-from token_trace.load_pretrained_model import load_model, load_sae_dict
+from token_trace.load_pretrained_model import load_model
 from token_trace.sae_activation_cache import get_sae_activation_cache
+from token_trace.types import MetricFunction, SAEDict
 
-pd.options.mode.chained_assignment = None  # default='warn'
-DEFAULT_MODEL_NAME = "gpt2-small"
-DEFAULT_REPO_ID = "jbloom/GPT2-Small-SAEs"
-DEFAULT_PROMPT = "When John and Mary went to the shops, John gave the bag to"
-DEFAULT_ANSWER = " Mary"
-DEFAULT_TEXT = DEFAULT_PROMPT + DEFAULT_ANSWER
-DEVICE = "cpu"
-# if torch.cuda.is_available():
-#     DEVICE = "cuda"
-
-
-def loss_helper(
-    model: HookedTransformer,
-    text: str,
-) -> torch.Tensor:
-    """Compute the loss of the model when predicting the last token."""
-    loss = model(text, return_type="loss", loss_per_token=True)
-    return loss[0, -1]
+node_df_schema = pa.DataFrameSchema(
+    {
+        "layer": pa.Column(int),
+        "example_idx": pa.Column(int),
+        "node_idx": pa.Column(int),
+        "token_idx": pa.Column(int),
+        "value": pa.Column(float),
+        "grad": pa.Column(float),
+        "indirect_effect": pa.Column(float),
+        "node_type": pa.Column(str),
+        "module_name": pa.Column(str),
+        "token_str": pa.Column(str),
+        "example_str": pa.Column(str),
+    }
+)
 
 
 def get_token_strs(model_name: str, text: str) -> list[str]:
@@ -33,19 +31,11 @@ def get_token_strs(model_name: str, text: str) -> list[str]:
 
 
 def compute_node_attribution(
-    model_name: str,
+    model: HookedTransformer,
+    sae_dict: SAEDict,
+    metric_fn: MetricFunction,
     text: str,
-    *,
-    metric: str = "loss",
 ) -> pd.DataFrame:
-    model = load_model(model_name)
-    sae_dict = load_sae_dict(model_name)
-    if metric == "loss":
-        # Last-token loss
-        metric_fn = lambda model: loss_helper(model, text)
-    else:
-        raise ValueError(f"Unknown metric: {metric}")
-
     # Get the token strings.
     text_tokens = model.to_str_tokens(text)
     prompt_tokens: list[str] = text_tokens[:-1]  # pyright: ignore
@@ -53,7 +43,7 @@ def compute_node_attribution(
 
     prompt_str = "".join(prompt_tokens)
     response_str = response_token
-    sae_cache_dict = get_sae_activation_cache(model, sae_dict, metric_fn)
+    sae_cache_dict = get_sae_activation_cache(model, sae_dict, metric_fn, text)
 
     # Construct dataframe.
     rows = []
@@ -75,7 +65,7 @@ def compute_node_attribution(
                 {
                     "layer": layer,
                     "module_name": module_name,
-                    "feature": node_idx.item(),
+                    "node_idx": node_idx.item(),
                     "token": token_idx.item(),
                     "token_str": text_tokens[token_idx],
                     "value": act.item(),

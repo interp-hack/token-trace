@@ -7,29 +7,29 @@ from token_trace.sae_patcher import SAEPatcher
 
 
 def test_sae_patcher_hook_forward_hook_only(
-    model: HookedTransformer, sae: SparseAutoencoder, prompt: str
+    model: HookedTransformer, sae: SparseAutoencoder, text: str
 ):
-    orig_loss = model(prompt, return_type="loss")
+    orig_loss = model(text, return_type="loss")
     sae_patcher = SAEPatcher(sae)
 
     with model.hooks(
         fwd_hooks=[sae_patcher.get_forward_hook()],
     ):
-        patched_loss = model(prompt, return_type="loss")
+        patched_loss = model(text, return_type="loss")
 
     assert torch.isclose(orig_loss, patched_loss, atol=1e-6)
 
 
 def test_sae_patcher_backward_hook_only(
-    model: HookedTransformer, sae: SparseAutoencoder, prompt: str
+    model: HookedTransformer, sae: SparseAutoencoder, text: str
 ):
-    orig_loss = model(prompt, return_type="loss")
+    orig_loss = model(text, return_type="loss")
     sae_patcher = SAEPatcher(sae)
 
     with model.hooks(
         bwd_hooks=[sae_patcher.get_backward_hook()],
     ):
-        patched_loss = model(prompt, return_type="loss")
+        patched_loss = model(text, return_type="loss")
 
     assert torch.isclose(orig_loss, patched_loss, atol=1e-6)
 
@@ -43,16 +43,16 @@ def get_grads(model: nn.Module) -> list[tuple[str, torch.Tensor]]:
 
 
 def test_sae_patcher_preserves_cached_model_activations(
-    model: HookedTransformer, sae: SparseAutoencoder, prompt: str
+    model: HookedTransformer, sae: SparseAutoencoder, text: str
 ):
-    _, orig_cache = model.run_with_cache(prompt, return_type="loss")
+    _, orig_cache = model.run_with_cache(text, return_type="loss")
     sae_patcher = SAEPatcher(sae)
 
     with model.hooks(
         fwd_hooks=[sae_patcher.get_forward_hook()],
         bwd_hooks=[sae_patcher.get_backward_hook()],
     ):
-        _, patched_cache = model.run_with_cache(prompt, return_type="loss")
+        _, patched_cache = model.run_with_cache(text, return_type="loss")
 
     for orig_name, patched_name in zip(orig_cache, patched_cache):
         assert orig_name == patched_name
@@ -62,9 +62,9 @@ def test_sae_patcher_preserves_cached_model_activations(
 
 
 def test_sae_patcher_preserves_model_grad(
-    model: HookedTransformer, sae: SparseAutoencoder, prompt: str
+    model: HookedTransformer, sae: SparseAutoencoder, text: str
 ):
-    orig_loss = model(prompt, return_type="loss")
+    orig_loss = model(text, return_type="loss")
     orig_loss.backward()
     orig_grads = get_grads(model)
     sae_patcher = SAEPatcher(sae)
@@ -73,7 +73,7 @@ def test_sae_patcher_preserves_model_grad(
         fwd_hooks=[sae_patcher.get_forward_hook()],
         bwd_hooks=[sae_patcher.get_backward_hook()],
     ):
-        patched_loss = model(prompt, return_type="loss")
+        patched_loss = model(text, return_type="loss")
         patched_loss.backward()
         patched_grads = get_grads(model)
 
@@ -85,7 +85,7 @@ def test_sae_patcher_preserves_model_grad(
 
 
 def test_sae_patcher_fields_have_grad(
-    model: HookedTransformer, sae: SparseAutoencoder, prompt: str
+    model: HookedTransformer, sae: SparseAutoencoder, text: str
 ):
     sae_patcher = SAEPatcher(sae)
     assert sae_patcher.sae_feature_acts.grad is None
@@ -95,7 +95,7 @@ def test_sae_patcher_fields_have_grad(
         fwd_hooks=[sae_patcher.get_forward_hook()],
         bwd_hooks=[sae_patcher.get_backward_hook()],
     ):
-        patched_loss = model(prompt, return_type="loss")
+        patched_loss = model(text, return_type="loss")
         patched_loss.backward()
 
     assert sae_patcher.sae_feature_acts.grad is not None
@@ -103,10 +103,10 @@ def test_sae_patcher_fields_have_grad(
 
 
 def test_sae_patcher_get_node_values(
-    model: HookedTransformer, sae: SparseAutoencoder, prompt: str
+    model: HookedTransformer, sae: SparseAutoencoder, text: str
 ):
     # Get the batch size and number of tokens hackily
-    loss = model(prompt, return_type="loss", loss_per_token=True)
+    loss = model(text, return_type="loss", loss_per_token=True)
     assert len(loss.shape) == 2
     n_batch, n_token = loss.shape
     # Next-token prediction loss shape is actually n_token-1 so we add one
@@ -117,7 +117,7 @@ def test_sae_patcher_get_node_values(
         fwd_hooks=[sae_patcher.get_forward_hook()],
         bwd_hooks=[sae_patcher.get_backward_hook()],
     ):
-        patched_loss = model(prompt, return_type="loss")
+        patched_loss = model(text, return_type="loss")
         patched_loss.backward()
 
     feature_node_vals = sae_patcher.get_node_values("feature")
@@ -129,10 +129,10 @@ def test_sae_patcher_get_node_values(
 
 
 def test_sae_patcher_get_node_grads(
-    model: HookedTransformer, sae: SparseAutoencoder, prompt: str
+    model: HookedTransformer, sae: SparseAutoencoder, text: str
 ):
     # Get the batch size and number of tokens hackily
-    loss = model(prompt, return_type="loss", loss_per_token=True)
+    loss = model(text, return_type="loss", loss_per_token=True)
     assert len(loss.shape) == 2
     n_batch, n_token = loss.shape
     # Next-token prediction loss shape is actually n_token-1 so we add one
@@ -143,7 +143,7 @@ def test_sae_patcher_get_node_grads(
         fwd_hooks=[sae_patcher.get_forward_hook()],
         bwd_hooks=[sae_patcher.get_backward_hook()],
     ):
-        patched_loss = model(prompt, return_type="loss")
+        patched_loss = model(text, return_type="loss")
         patched_loss.backward()
 
     feature_node_grads = sae_patcher.get_node_grads("feature")

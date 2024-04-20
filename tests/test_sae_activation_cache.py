@@ -1,5 +1,3 @@
-from functools import partial
-
 import pytest
 import torch
 from sae_lens import SparseAutoencoder
@@ -10,9 +8,7 @@ from token_trace.types import (
     MetricFunction,
     ModuleName,
 )
-from token_trace.utils import (
-    last_token_loss,
-)
+from token_trace.utils import last_token_prediction_loss
 
 
 @pytest.fixture(scope="module")
@@ -27,14 +23,12 @@ def sae_dict(sae: SparseAutoencoder) -> dict[ModuleName, SparseAutoencoder]:
 
 
 def test_get_sae_cache_dict(
-    model: HookedTransformer, sae_dict: dict[ModuleName, SparseAutoencoder], prompt: str
+    model: HookedTransformer, sae_dict: dict[ModuleName, SparseAutoencoder], text: str
 ):
-    metric_fn: MetricFunction = partial(last_token_loss, prompt=prompt)
+    metric_fn: MetricFunction = last_token_prediction_loss
 
     sae_cache_dict = get_sae_activation_cache(
-        model=model,
-        sae_dict=sae_dict,
-        metric_fn=metric_fn,
+        model=model, sae_dict=sae_dict, metric_fn=metric_fn, text=text
     )
 
     for name, module_activations in sae_cache_dict.items():

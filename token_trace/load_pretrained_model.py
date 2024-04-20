@@ -8,9 +8,7 @@ from sae_lens import SparseAutoencoder
 from sae_lens.training.utils import BackwardsCompatibleUnpickler
 from transformer_lens import HookedTransformer
 
-from token_trace.types import (
-    ModuleName,
-)
+from token_trace.types import ModuleName, SAEDict
 
 DEFAULT_MODEL_NAME = "gpt2-small"
 DEFAULT_REPO_ID = "jbloom/GPT2-Small-SAEs"
@@ -48,7 +46,7 @@ def load_sae(layer: int) -> SparseAutoencoder:
 
 
 @functools.lru_cache(maxsize=1)
-def load_sae_dict(model_name: str) -> dict[ModuleName, SparseAutoencoder]:
+def load_sae_dict(model_name: str) -> SAEDict:
     if model_name != DEFAULT_MODEL_NAME:
         raise ValueError(f"Unknown model: {model_name}")
     # TODO: un-hardcode n_layers

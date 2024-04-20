@@ -11,19 +11,19 @@ from pandera.typing import Series
 from plotly.subplots import make_subplots
 
 from token_trace.app.get_data import get_data
-from token_trace.compute_node_attribution import (
+from token_trace.constants import (
     # DEFAULT_ANSWER,
     DEFAULT_MODEL_NAME,
     # DEFAULT_PROMPT,
     DEFAULT_REPO_ID,
     DEFAULT_TEXT,
-    get_token_strs,
-    load_model,
 )
+from token_trace.load_pretrained_model import load_model
 from token_trace.print_prompt_info import print_prompt_info
-from token_trace.utils import get_neuronpedia_url
+from token_trace.utils import get_neuronpedia_url, get_token_strs
 
 DATA_DIR = Path("data")
+pd.options.mode.chained_assignment = None  # default='warn'
 
 
 def get_token_annotations(tokens: list[str]) -> Sequence[str | tuple[str, str, str]]:

@@ -14,6 +14,7 @@ def get_sae_activation_cache(
     model: HookedTransformer,
     sae_dict: dict[ModuleName, SparseAutoencoder],
     metric_fn: MetricFunction,
+    text: str,
 ) -> SAEActivationCache:
     sae_patcher_dict = {name: SAEPatcher(sae) for name, sae in sae_dict.items()}
 
@@ -27,7 +28,7 @@ def get_sae_activation_cache(
             sae_patcher.get_backward_hook() for sae_patcher in sae_patcher_dict.values()
         ],
     ):
-        metric = metric_fn(model)
+        metric = metric_fn(model, text)
         metric.backward()
 
     sae_cache_dict = {}
