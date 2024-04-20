@@ -32,7 +32,7 @@ class NodeAttributionSchema(pa.SchemaModel):
 
 NodeAttributionDataFrame = DataFrame[NodeAttributionSchema]
 
-logger = setup_logger(__name__, logging.DEBUG)
+logger = setup_logger(__name__, logging.INFO)
 
 
 def get_nodes_in_module(

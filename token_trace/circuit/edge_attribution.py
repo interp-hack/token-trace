@@ -38,7 +38,7 @@ class EdgeAttributionSchema(pa.SchemaModel):
 
 EdgeAttributionDataFrame = DataFrame[EdgeAttributionSchema]
 
-logger = setup_logger(__name__, logging.DEBUG)
+logger = setup_logger(__name__, logging.INFO)
 
 
 def validate_edge_attribution(edge_df: pd.DataFrame) -> EdgeAttributionDataFrame:

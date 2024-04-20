@@ -4,7 +4,7 @@ from collections import deque
 from hashlib import md5
 from threading import Lock
 
-from token_trace.circuit import SparseFeatureCircuit
+from token_trace.circuit import SparseFeatureCircuit, SparseFeatureCircuitBuilder
 from token_trace.constants import (
     DEFAULT_MODEL_NAME,
     DEFAULT_TEXT,
@@ -45,10 +45,11 @@ def load_or_compute_circuit(
         circuit = SparseFeatureCircuit.load(DATA_DIR / prefix)
     else:
         save_dir.mkdir(exist_ok=True, parents=True)
-        circuit = SparseFeatureCircuit(model_name=DEFAULT_MODEL_NAME, text=text)
-        circuit.compute_sae_activation_cache().compute_node_attributions().save(
-            save_dir
-        )
+        builder = SparseFeatureCircuitBuilder(model_name=DEFAULT_MODEL_NAME, text=text)
+        # TODO: edge attributions are still too slow to compute this here
+        builder.compute_sae_activation_cache().compute_node_attributions()
+        circuit = builder.circuit
+        circuit.save(save_dir)
         add_path_and_delete_old(save_dir)
 
     return circuit
