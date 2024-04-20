@@ -1,6 +1,6 @@
 [project]
 name = "token-trace"
-version = "0.1.0"
+version = "0.2.1"
 description = "Transformer token flow visualizer"
 authors = [
     { name = "Seongho Son, Liza Karmannaya, Daniel Tan, David Chanin", email = "chanindav@gmail.com" },
@@ -57,3 +57,24 @@ extend-select = ["UP", "TID", "I", "F", "E", "ARG"]
 
 [tool.pdm.scripts]
 run_app = "streamlit run app/token_trace_app.py"
+
+[tool.semantic_release]
+logging_use_named_masks = true
+commit_parser = "angular"
+major_on_zero = true
+version_variables = ["token_trace/__init__.py:__version__"]
+version_toml = ["pyproject.toml:project.version"]
+
+[tool.semantic_release.changelog]
+exclude_commit_patterns = [
+  '''chore(?:\([^)]*?\))?: .+''',
+  '''ci(?:\([^)]*?\))?: .+''',
+  '''refactor(?:\([^)]*?\))?: .+''',
+  '''style(?:\([^)]*?\))?: .+''',
+  '''test(?:\([^)]*?\))?: .+''',
+  '''build\((?!deps\): .+)''',
+  '''Merged? .*''',
+  '''Initial Commit.*''',
+  # Old semantic-release version commits
+  '''^\d+\.\d+\.\d+''',
+]
