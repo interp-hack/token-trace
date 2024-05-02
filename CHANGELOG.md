@@ -2,6 +2,13 @@
 
 
 
+## v0.3.2 (2024-05-02)
+
+### Fix
+
+* fix: data dir ([`93475dc`](https://github.com/token-trace/token-trace/commit/93475dc0b4d11d5cc1fa5d65e35d8fa5ec49a1c4))
+
+
 ## v0.3.1 (2024-05-02)
 
 ### Fix
