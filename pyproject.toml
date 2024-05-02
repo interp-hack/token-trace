@@ -1,6 +1,6 @@
 [project]
 name = "token-trace"
-version = "0.2.1"
+version = "0.3.0"
 description = "Transformer token flow visualizer"
 authors = [
     { name = "Seongho Son, Liza Karmannaya, Daniel Tan, David Chanin", email = "chanindav@gmail.com" },

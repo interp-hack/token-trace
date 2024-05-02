@@ -2,11 +2,26 @@
 
 
 
+## v0.3.0 (2024-05-02)
+
+### Feature
+
+* feat: pre-computed attribs (#10)
+
+* wip
+
+* add pre-computed datasets, fix circuit loading
+
+---------
+
+Co-authored-by: Daniel Tan &lt;dtch1997@users.noreply.github.com&gt; ([`606f1d2`](https://github.com/token-trace/token-trace/commit/606f1d2075f449accd2f9ce412559cf6ea942b55))
+
+### Unknown
+
+* add functionality to save builder args ([`f91a8ce`](https://github.com/token-trace/token-trace/commit/f91a8ce947127f27b0af35fd77d894efeb6da369))
+
+
 ## v0.2.1 (2024-04-20)
-
-### Chore
-
-* chore: remove unused data files ([`43dfcda`](https://github.com/token-trace/token-trace/commit/43dfcda4593bd8f972384aa5697a630034e27fe8))
 
 ### Fix
 
@@ -14,12 +29,6 @@
 
 
 ## v0.2.0 (2024-04-20)
-
-### Chore
-
-* chore: download model, saes in dockerfile ([`14453d3`](https://github.com/token-trace/token-trace/commit/14453d318fe3d57d58ce58f8a6983209cf1193ac))
-
-* chore: update README ([`e0b4a3a`](https://github.com/token-trace/token-trace/commit/e0b4a3abbeb7cbbed352f906dd5b05a5e362b81d))
 
 ### Feature
 
@@ -41,76 +50,8 @@
 
 Co-authored-by: Daniel Tan &lt;dtch1997@users.noreply.github.com&gt; ([`0d0b386`](https://github.com/token-trace/token-trace/commit/0d0b38618fd0789990d65db29e0dc98bda70faef))
 
-### Refactor
-
-* refactor: client (#7)
-
-* chore: update dependencies
-
-* refactor: move main app code into token_trace package
-
-* refactor: merge client, server
-
-* fix: minor
-
----------
-
-Co-authored-by: Daniel Tan &lt;dtch1997@users.noreply.github.com&gt; ([`d34ac69`](https://github.com/token-trace/token-trace/commit/d34ac6943133f3eb638ab64620ae3b3ecbefabc2))
-
 
 ## v0.1.0 (2024-04-19)
-
-### Chore
-
-* chore: update gitignore, add cached data ([`8d0b446`](https://github.com/token-trace/token-trace/commit/8d0b4462c1334e257e7a23112b512a5af393001f))
-
-* chore: remove droplet deploy action ([`932cdd7`](https://github.com/token-trace/token-trace/commit/932cdd78cb7401ff3c52ef6d6d8ead624b4a046e))
-
-* chore: add data dir ([`b92f776`](https://github.com/token-trace/token-trace/commit/b92f7761569e6f5f679c89d7b4b7260f7a79eb72))
-
-* chore: add gh action to deploy to droplet ([`cff95d6`](https://github.com/token-trace/token-trace/commit/cff95d65e2710536f6f7bf1883964b5499516d6e))
-
-* chore: update dependencies ([`299dc42`](https://github.com/token-trace/token-trace/commit/299dc42b3f1b5014fddc63741dbf7dc70d1af958))
-
-* chore: update dependencies ([`4e1dea9`](https://github.com/token-trace/token-trace/commit/4e1dea9260cc961e05c98a09dd1685822399ca68))
-
-* chore: add reqs for streamlit app ([`35a5b30`](https://github.com/token-trace/token-trace/commit/35a5b30c3eb9aa1a719967233dae94b0fec7a1a2))
-
-* chore: fix publishing workflow ([`c9b7a08`](https://github.com/token-trace/token-trace/commit/c9b7a081251eecc8db3605a72bc650590ed171ae))
-
-* chore: update permissions for release ([`3a3d498`](https://github.com/token-trace/token-trace/commit/3a3d4988b7a217335f715c70b86580e65fe9c296))
-
-* chore: update type hints ([`d475ef4`](https://github.com/token-trace/token-trace/commit/d475ef4dd6be7b923f7cbfca39f2b02ef6700035))
-
-* chore: update lockfile ([`fd34add`](https://github.com/token-trace/token-trace/commit/fd34adde533fa5494e1491d0f6661997db14872b))
-
-* chore: test with smaller models; delete unused dependencies ([`2ffc7ae`](https://github.com/token-trace/token-trace/commit/2ffc7ae33482b7a3f1bc373bd03d46add0072ede))
-
-* chore: disable pyright ([`c2401f4`](https://github.com/token-trace/token-trace/commit/c2401f417b00467805d3a5fa15e46058f7eedd46))
-
-* chore: disable export requirements.txt ([`17a3c46`](https://github.com/token-trace/token-trace/commit/17a3c46ba3658da53bb2af9816939c38492c6f92))
-
-* chore: add pdm lockfile, re-enable cache ([`7c2b32b`](https://github.com/token-trace/token-trace/commit/7c2b32b887bcc0e9f35c46f487d48ce44f490da7))
-
-* chore: update ci ([`be132f2`](https://github.com/token-trace/token-trace/commit/be132f29448d3fbe42c222760ecdd261ef5b3593))
-
-* chore: update readme ([`d6032ac`](https://github.com/token-trace/token-trace/commit/d6032ac47a24778f7c1784fa4f3f3e494ee7686e))
-
-* chore: move app into subdirectory ([`0170653`](https://github.com/token-trace/token-trace/commit/0170653c2138cb3f74acaa8e2ae79801e1380a80))
-
-* chore: add import ([`c8f020b`](https://github.com/token-trace/token-trace/commit/c8f020b30e80d604ec701ff9e7e12ed14c20e333))
-
-* chore: update ci ([`79131be`](https://github.com/token-trace/token-trace/commit/79131bed91c84388046ae129322694560e7fddee))
-
-* chore: delete requirements.txt ([`c9f34fa`](https://github.com/token-trace/token-trace/commit/c9f34fae80c2ce03326161937d7a3310859898d3))
-
-* chore: add workflow to publish to pypi ([`d6b889b`](https://github.com/token-trace/token-trace/commit/d6b889b9a5226ff2bb89bb0ebffb0b57f9f82aac))
-
-* chore: restructure directory ([`0887acd`](https://github.com/token-trace/token-trace/commit/0887acdcec173cc4cf97f32845701e55983336d2))
-
-* chore: add requirements.txt for streamlit ([`eb2f601`](https://github.com/token-trace/token-trace/commit/eb2f601103b38db554fc74d629c880c9d286e002))
-
-* chore: add pre-commit hook to export pdm requirements ([`3197dc4`](https://github.com/token-trace/token-trace/commit/3197dc4a37aee08dd1470e9d9d9ce2badf81920e))
 
 ### Feature
 
@@ -149,14 +90,6 @@ Co-authored-by: Daniel Tan &lt;dtch1997@users.noreply.github.com&gt; ([`59ce162`
 * fix: various ([`076cc92`](https://github.com/token-trace/token-trace/commit/076cc92d1e2926e8648ae733ab2de8216316e26b))
 
 * fix: lint ([`6e5a776`](https://github.com/token-trace/token-trace/commit/6e5a7767fea35f809d74e09f9630f24bc753be97))
-
-### Refactor
-
-* refactor: tests, sae activation cache ([`a4d0c3a`](https://github.com/token-trace/token-trace/commit/a4d0c3abd5451c5d31f8f889a50cd99629aedf88))
-
-* refactor: load model fns into new file ([`990dff3`](https://github.com/token-trace/token-trace/commit/990dff32e9e72fd74481502ee0ca099e3cb2873c))
-
-* refactor: app ([`b77a273`](https://github.com/token-trace/token-trace/commit/b77a273286346867c705bc0472445a2acddf27f5))
 
 ### Unknown
 
