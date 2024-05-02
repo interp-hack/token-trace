@@ -158,7 +158,7 @@ def add_neuronpedia_buttons(df: pd.DataFrame):
             features = neg_df[neg_df["layer"] == layer]["act_idx"].values
             list_name = f"layer_{layer}_ie_negative_features"
             st.link_button(
-                label=f"ie-positive features for layer {layer}",
+                label=f"ie-negative features for layer {layer}",
                 url=get_neuronpedia_url(layer, features, list_name),
             )
 
@@ -334,7 +334,7 @@ def visualize_dataframe(df: pd.DataFrame):
     st.plotly_chart(fig, use_container_width=True)
 
 
-def run_app():
+def run_app(precomputed_only: bool = True):
     st.set_page_config(layout="wide")
     # Display model name
     st.header("Metadata")
@@ -342,17 +342,20 @@ def run_app():
     st.write(f"SAEs: {DEFAULT_REPO_ID}")
 
     # List existing circuits
-    existing_texts = [""] + list_existing_circuits()
-    st.write("View a pre-computed prompt")
+    existing_texts = list_existing_circuits() + ["null"]
+    st.header("View a pre-computed prompt")
     selected_text = st.selectbox("Select a prompt", existing_texts, index=0)
+    text = selected_text
+    assert isinstance(text, str)
 
     # Get text
-    st.header("Or write your own prompt")
-    user_text = st.text_input("Text", DEFAULT_TEXT)
-    prompt, response = user_text.rsplit(" ", 1)
-    st.divider()
+    if not precomputed_only:
+        st.header("Or write your own prompt")
+        user_text = st.text_input("Text", DEFAULT_TEXT)
+        text = selected_text if selected_text else user_text
 
-    text = selected_text if selected_text else user_text
+    st.divider()
+    prompt, response = text.rsplit(" ", 1)
 
     with st.expander("Prompt breakdown"):
         # Display tokenized text
