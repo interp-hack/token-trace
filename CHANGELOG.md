@@ -2,6 +2,13 @@
 
 
 
+## v0.3.1 (2024-05-02)
+
+### Fix
+
+* fix: precomputed-only in prod ([`6bb0ee0`](https://github.com/token-trace/token-trace/commit/6bb0ee0bd2856d273ea98a62fa1bc337bc4ebe2f))
+
+
 ## v0.3.0 (2024-05-02)
 
 ### Feature
