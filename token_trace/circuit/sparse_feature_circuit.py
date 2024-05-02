@@ -1,3 +1,4 @@
+import json
 import pathlib
 from dataclasses import dataclass
 
@@ -144,6 +145,18 @@ class SparseFeatureCircuitBuilder:
             .compute_edge_attributions()
             .filter_edges()
         )
+
+    def save_args(self, save_dir: pathlib.Path):
+        args = {
+            "model_name": self.model_name,
+            "text": self.text,
+            "min_node_abs_ie": self.min_node_abs_ie,
+            "max_n_nodes": self.max_n_nodes,
+            "min_edge_abs_ie": self.min_edge_abs_ie,
+            "max_n_edges": self.max_n_edges,
+        }
+        with open(save_dir / "args.json", "w") as f:
+            json.dump(args, f)
 
 
 @dataclass

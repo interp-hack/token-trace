@@ -1,3 +1,4 @@
+import json
 import pathlib
 import shutil
 from collections import deque
@@ -34,6 +35,20 @@ def add_path_and_delete_old(path: pathlib.Path):
         print(f"Deleted old path: {oldest_path}")
 
 
+def list_existing_circuits() -> list[str]:
+    existing_texts = []
+    savedirs = [path for path in DATA_DIR.iterdir() if path.is_dir()]
+    # get the text for each circuit
+    for savedir in savedirs:
+        try:
+            with open(savedir / "args.json") as f:
+                args = json.load(f)
+                existing_texts.append(args["text"])
+        except FileNotFoundError:
+            continue
+    return existing_texts
+
+
 def load_or_compute_circuit(
     text: str, force_rerun: bool = False
 ) -> SparseFeatureCircuit:
@@ -47,6 +62,7 @@ def load_or_compute_circuit(
         save_dir.mkdir(exist_ok=True, parents=True)
         builder = SparseFeatureCircuitBuilder(model_name=DEFAULT_MODEL_NAME, text=text)
         # TODO: edge attributions are still too slow to compute this here
+        builder.save_args(save_dir)
         builder.compute_sae_activation_cache().compute_node_attributions()
         circuit = builder.circuit
         circuit.save(save_dir)
