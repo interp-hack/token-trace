@@ -9,7 +9,7 @@ from annotated_text import annotated_text
 from pandera.typing import Series
 from plotly.subplots import make_subplots
 
-from token_trace.app.get_circuit import get_circuit
+from token_trace.app.get_circuit import get_circuit, list_existing_circuits
 from token_trace.app.process_data import process_node_data
 from token_trace.constants import (
     # DEFAULT_ANSWER,
@@ -341,11 +341,18 @@ def run_app():
     st.write(f"Model: {DEFAULT_MODEL_NAME}")
     st.write(f"SAEs: {DEFAULT_REPO_ID}")
 
+    # List existing circuits
+    existing_texts = [""] + list_existing_circuits()
+    st.write("View a pre-computed prompt")
+    selected_text = st.selectbox("Select a prompt", existing_texts, index=0)
+
     # Get text
-    st.header("Input")
-    text = st.text_input("Text", DEFAULT_TEXT)
-    prompt, response = text.rsplit(" ", 1)
+    st.header("Or write your own prompt")
+    user_text = st.text_input("Text", DEFAULT_TEXT)
+    prompt, response = user_text.rsplit(" ", 1)
     st.divider()
+
+    text = selected_text if selected_text else user_text
 
     with st.expander("Prompt breakdown"):
         # Display tokenized text
