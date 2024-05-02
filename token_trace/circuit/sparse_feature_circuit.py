@@ -216,6 +216,8 @@ class SparseFeatureCircuit:
             node_ie_df = None
         if (save_dir / "edge.csv").exists():
             edge_ie_df = pd.read_csv(save_dir / "edge.csv", index_col=0)
+            if len(edge_ie_df) == 0:
+                edge_ie_df = None
         else:
             edge_ie_df = None
 
