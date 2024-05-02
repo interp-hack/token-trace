@@ -1,3 +1,4 @@
+import pathlib
 from collections.abc import Sequence
 from typing import cast
 
@@ -9,7 +10,7 @@ from annotated_text import annotated_text
 from pandera.typing import Series
 from plotly.subplots import make_subplots
 
-from token_trace.app.get_circuit import get_circuit, list_existing_circuits
+from token_trace.app.get_circuit import DATA_DIR, get_circuit, list_existing_circuits
 from token_trace.app.process_data import process_node_data
 from token_trace.constants import (
     # DEFAULT_ANSWER,
@@ -334,7 +335,7 @@ def visualize_dataframe(df: pd.DataFrame):
     st.plotly_chart(fig, use_container_width=True)
 
 
-def run_app(precomputed_only: bool = True):
+def run_app(precomputed_only: bool = True, data_dir: pathlib.Path = DATA_DIR):
     st.set_page_config(layout="wide")
     # Display model name
     st.header("Metadata")
@@ -369,7 +370,7 @@ def run_app(precomputed_only: bool = True):
         print_prompt_info(prompt, response, model, print_fn=st.write)
 
     # Load or compute node attributions
-    circuit = get_circuit(text)
+    circuit = get_circuit(text, data_dir=data_dir)
     df = process_node_data(circuit.node_ie_df)
 
     # TODO: Summarise SAE errors

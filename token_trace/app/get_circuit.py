@@ -50,14 +50,14 @@ def list_existing_circuits() -> list[str]:
 
 
 def load_or_compute_circuit(
-    text: str, force_rerun: bool = False
+    text: str, data_dir: pathlib.Path = DATA_DIR, force_rerun: bool = False
 ) -> SparseFeatureCircuit:
     """Load or compute the circuit data."""
     prefix = md5(text.encode()).hexdigest()[:16]
-    save_dir = DATA_DIR / prefix
+    save_dir = data_dir / prefix
 
     if save_dir.exists() and not force_rerun:
-        circuit = SparseFeatureCircuit.load(DATA_DIR / prefix)
+        circuit = SparseFeatureCircuit.load(data_dir / prefix)
     else:
         save_dir.mkdir(exist_ok=True, parents=True)
         builder = SparseFeatureCircuitBuilder(model_name=DEFAULT_MODEL_NAME, text=text)
@@ -71,12 +71,14 @@ def load_or_compute_circuit(
     return circuit
 
 
-def get_circuit(text: str, force_rerun: bool = False) -> SparseFeatureCircuit:
+def get_circuit(
+    text: str, data_dir: pathlib.Path = DATA_DIR, force_rerun: bool = False
+) -> SparseFeatureCircuit:
     mutex = Lock()
     with mutex:
-        circuit = load_or_compute_circuit(text, force_rerun)
+        circuit = load_or_compute_circuit(text, data_dir, force_rerun)
     return circuit
 
 
 if __name__ == "__main__":
-    get_circuit(DEFAULT_TEXT, force_rerun=True)
+    get_circuit(DEFAULT_TEXT, data_dir=DATA_DIR, force_rerun=True)
